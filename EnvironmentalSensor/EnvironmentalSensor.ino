@@ -1,3 +1,10 @@
+/**
+ * @file EnvironmentalSensor.ino
+ * @version 1.0
+ * @author András Kovács
+ * @title Environmental Sensor Firmware
+ */
+
 #include <Wire.h>
 
 #include <BME280.h>
@@ -17,6 +24,9 @@
 #include <WiFiServer.h>
 #include <WiFiUdp.h>
 #include <ESP8266mDNS.h>
+
+//General comments
+//
 
 //JSON Interface Example
 /*
@@ -40,6 +50,9 @@
   }
 }
  */
+
+//Images encoded in Base64
+//
 
 //Temperature symbol 64x64
 const char* img_temp = "data:image/png;base64,"
@@ -230,25 +243,32 @@ const char* img_uv = "data:image/png;base64,"
 "hTXyw5d0hi9qDV/WG76wOXxpd/ji9vDl/eEbHMK3eIRvcgnf5hO+0Sl8q1f4Zrfw7X7hGx7Dt3yG"
 "b3oN3/YbvvE5fOt3+Ob3Etr//wd5FF84IskPZQAAAABJRU5ErkJggg==";
 
-const char* ssid = "AndroidAP";
-const char* password = "ifez0433";
+
+//Constants
+//
+
+//Network of my phone
+#define MY_SSID "AndroidAP"
+#define MY_PASSWORD "ifez0433"
 
 //Board
-#define LED_BLUE 12
-#define LED_AMBER 13
-#define PIN_SDA 2
-#define PIN_SCL 14
+#define LED_BLUE    12
+#define LED_AMBER   13
+#define PIN_SDA     2
+#define PIN_SCL     14
 
 //BME280
 #define BME280_ADDRESS 0x76
 
-#define  VEML6040_CONF            0x00 // command codes
-#define  VEML6040_R_DATA          0x08  
-#define  VEML6040_G_DATA          0x09 
-#define  VEML6040_B_DATA          0x0A
-#define  VEML6040_W_DATA          0x0B
+//VEML6040
+#define  VEML6040_ADDRESS 0x10
+#define  VEML6040_CONF      0x00
+#define  VEML6040_R_DATA    0x08  
+#define  VEML6040_G_DATA    0x09 
+#define  VEML6040_B_DATA    0x0A
+#define  VEML6040_W_DATA    0x0B
 
-#define VEML6040_ADDRESS         0x10
+
 
 enum IT {
   IT_40 = 0, //   40 ms
@@ -276,20 +296,26 @@ struct BME280Result
   float Humidity;
 };
 
+
+//Global declarations
+//
+ESP8266WebServer server(80);
+MDNSResponder mdns;
+BME280 bme;
+
+
+/**
+ * @brief: Gets the BME280 measurements on demand
+ */
 BME280Result getBME280Data()
 {
   return {0.0f,0.0f,0.0f};
 }
 
 
-
-ESP8266WebServer server(80);
-MDNSResponder mdns;
-BME280 bme;
-
-//
-//HTML Page Creators
-//
+/**
+ * @brief Creates the HTML source of the main page, in a human readable form. Displayed: Temp., Press., Hum., RGBW, UVAB
+ */
 String createMainPage(float temp,float pres, float hum)
 {
   String src = "";
@@ -333,11 +359,17 @@ String createMainPage(float temp,float pres, float hum)
   return src;
 }
 
+/**
+ * @brief At first I am going to implement the LED controll
+ */
 String createControlPage()
 {
   return "Control will be implemented later";
 }
 
+/**
+ * @brief Displays the measured data in JSON format.  Displayed: Temp., Press., Hum., RGBW, UVAB
+ */
 String createJSONPage(float temp,float pres, float hum,float r,float g,float b, float w,float uva,float uvb)
 {
   String src = "";
@@ -364,6 +396,9 @@ String createJSONPage(float temp,float pres, float hum,float r,float g,float b, 
   return src;
 }
 
+/**
+ * @brief Scans all the I2C addresses, and (now) displays the result on the serial port.
+ */
 void I2Cscan() 
 {
     // scan for i2c devices
@@ -389,10 +424,12 @@ void I2Cscan()
 
 
 
-
+/**
+ * @brief: Server initialization
+ */
 void serverSetup()
 {
-  WiFi.begin(ssid, password);
+  WiFi.begin(MY_SSID, MY_PASSWORD);
   delay(1000);
   Serial.print("Waiting for connection");
   while (WiFi.status() != WL_CONNECTED)
@@ -402,7 +439,7 @@ void serverSetup()
   }
   Serial.println("");
   Serial.print("Connected to ");
-  Serial.println(ssid);
+  Serial.println(MY_SSID);
   Serial.print("Local IP: ");
   Serial.println(WiFi.localIP());
 
@@ -426,6 +463,7 @@ void serverSetup()
   server.begin();
 }
 
+//TMP
 void enableVEML6040()
 {
   Wire.beginTransmission(VEML6040_ADDRESS);
@@ -435,6 +473,7 @@ void enableVEML6040()
   Wire.endTransmission();
 }
 
+//TMP
 uint16_t getRGBWdata(uint16_t * destination)
 {
     for (int j = 0; j < 4; j++)
@@ -458,7 +497,9 @@ uint16_t getRGBWdata(uint16_t * destination)
 
 
 
-
+/**
+ * @brief The initializer callback. Runs once at device startup.
+ */
 void setup()
 {
   pinMode(LED_BLUE, OUTPUT);
@@ -476,6 +517,9 @@ void setup()
   delay(150);
 }
 
+/**
+ * @brief The main loop. 
+ */
 void loop() {
   server.handleClient();
 }
