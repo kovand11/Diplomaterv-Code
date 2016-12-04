@@ -316,48 +316,55 @@ BME280Result getBME280Data()
 
 
 /**
+ * @brief: Creates a HTML table with key value parts
+ */
+String createKeyValueTable(char* keys[], String values[],int rowcount)
+{
+  String src = "";
+  src += "<table>\n";
+  for (int i=0; i < rowcount; i++)
+  {
+    src += "<tr>";
+    src += String("<td>") + String(keys[i]) + String("</td>");
+    src += String("<td>") + values[i] + String("</td>");
+    src += "</tr>";    
+  }
+  src += "</table>\n";
+  return src;
+}
+
+/**
+ * @brief Creates and icon(Base64) and a text line partial HTML source.
+ */
+String createIconTextLine(String icon, String text)
+{
+  String src;
+  src+="<div id=\"temp_container\" style=\"white-space:nowrap\">";  
+  src+=" <div id=\"image\" style=\"display:inline;\">";
+  src += "<img alt=\"Embedded Image\" src=\"";
+  src += icon;
+  src += "\" />";
+  src += " </div>";  
+  src += " <div id=\"texts\" style=\"display:inline; white-space:nowrap; font-size:200%;\">";
+  src += text;
+  src = " </div>";  
+  src += "</div>";
+  return src;
+}
+
+
+
+/**
  * @brief Creates the HTML source of the main page, in a human readable form. Displayed: Temp., Press., Hum., RGBW, UVAB
  */
 String createMainPage(float temp,float pres, float hum)
 {
   String src = "";
-  src += "<!DOCTYPE html><html><body>";
-    
-  src+="<div id=\"temp_container\" style=\"white-space:nowrap\">";  
-  src+=" <div id=\"image\" style=\"display:inline;\">";
-  src += "<img alt=\"Embedded Image\" src=\"";
-  src += img_temp;
-  src += "\" />";
-  src+=" </div>";  
-  src+=" <div id=\"texts\" style=\"display:inline; white-space:nowrap; font-size:200%;\">";
-  src+=   String(temp) + " &#8451;";
-  src+=" </div>";  
-  src+="</div>";
-  
-  src+="<div id=\"press_container\" style=\"white-space:nowrap\">";  
-  src+=" <div id=\"image\" style=\"display:inline;\">";
-  src += "<img alt=\"Embedded Image\" src=\"";
-  src += img_pres;
-  src += "\" />";
-  src+=" </div>";  
-  src+=" <div id=\"texts\" style=\"display:inline; white-space:nowrap; font-size:200%;\">";
-  src+=   String(pres) + " Bar";
-  src+=" </div>";  
-  src+="</div>";
-  
-  src+="<div id=\"hum_container\" style=\"white-space:nowrap\">";  
-  src+=" <div id=\"image\" style=\"display:inline;\">";
-  src += "<img alt=\"Embedded Image\" src=\"";
-  src += img_hum;
-  src += "\" />";
-  src+=" </div>";  
-  src+=" <div id=\"texts\" style=\"display:inline; white-space:nowrap; font-size:200%;\">";
-  src+=   String(hum) + " %";
-  src+=" </div>";  
-  src+="</div>";
-  
-  src +="</body></html>";
-  
+  src += "<!DOCTYPE html><html><body>";  
+  createIconTextLine(img_temp, String(temp) + " &#8451;");
+  createIconTextLine(img_pres, String(pres) + " Bar");
+  createIconTextLine(img_hum, String(hum) + " %");  
+  src +="</body></html>";  
   return src;
 }
 
