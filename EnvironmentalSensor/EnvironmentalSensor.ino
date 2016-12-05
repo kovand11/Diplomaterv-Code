@@ -1,3 +1,7 @@
+
+#include<math.h>
+#include <veml6040.h>
+
 /**
  * @file EnvironmentalSensor.ino
  * @version 1.0
@@ -259,60 +263,14 @@ const char* img_uv = "data:image/png;base64,"
 #define PIN_SDA     2
 #define PIN_SCL     14
 
-//BME280
-#define BME280_ADDRESS 0x76
-
-//VEML6040
-#define  VEML6040_ADDRESS 0x10
-#define  VEML6040_CONF      0x00
-#define  VEML6040_R_DATA    0x08  
-#define  VEML6040_G_DATA    0x09 
-#define  VEML6040_B_DATA    0x0A
-#define  VEML6040_W_DATA    0x0B
-
-
-
-enum IT {
-  IT_40 = 0, //   40 ms
-  IT_80,     //   80 ms
-  IT_160,    //  160 ms
-  IT_320,    //  320 ms
-  IT_640,    //  640 ms
-  IT_1280   // 1280 ms
-};
-
-
-// Specify VEML6070 Integration time
-uint8_t IT = IT_160;
-uint8_t ITime = 160;  // milliseconds
-uint16_t RGBWData[4] = {0, 0, 0, 0};
-float GSensitivity = 0.25168/((float) (IT + 1)); // ambient light sensitivity increases with integration time
-float redLight, greenLight, blueLight, ambientLight;
-
-
-
-struct BME280Result
-{
-  float Temperature;
-  float Pressure;
-  float Humidity;
-};
-
-
 //Global declarations
 //
 ESP8266WebServer server(80);
 MDNSResponder mdns;
 BME280 bme;
+VEML6040 RGBWSensor;
 
 
-/**
- * @brief: Gets the BME280 measurements on demand
- */
-BME280Result getBME280Data()
-{
-  return {0.0f,0.0f,0.0f};
-}
 
 
 /**
@@ -339,15 +297,15 @@ String createKeyValueTable(char* keys[], String values[],int rowcount)
 String createIconTextLine(String icon, String text)
 {
   String src;
-  src+="<div id=\"temp_container\" style=\"white-space:nowrap\">";  
-  src+=" <div id=\"image\" style=\"display:inline;\">";
+  src += "<div id=\"temp_container\" style=\"white-space:nowrap\">";  
+  src += " <div id=\"image\" style=\"display:inline;\">";
   src += "<img alt=\"Embedded Image\" src=\"";
   src += icon;
   src += "\" />";
   src += " </div>";  
   src += " <div id=\"texts\" style=\"display:inline; white-space:nowrap; font-size:200%;\">";
   src += text;
-  src = " </div>";  
+  src += " </div>";  
   src += "</div>";
   return src;
 }
@@ -357,13 +315,16 @@ String createIconTextLine(String icon, String text)
 /**
  * @brief Creates the HTML source of the main page, in a human readable form. Displayed: Temp., Press., Hum., RGBW, UVAB
  */
-String createMainPage(float temp,float pres, float hum)
+String createMainPage(float temperature,float pressure, float humidity,
+  float ambient,uint16_t red,uint16_t green, uint16_t blue,uint16_t white)
 {
   String src = "";
-  src += "<!DOCTYPE html><html><body>";  
-  createIconTextLine(img_temp, String(temp) + " &#8451;");
-  createIconTextLine(img_pres, String(pres) + " Bar");
-  createIconTextLine(img_hum, String(hum) + " %");  
+  src += "<!DOCTYPE html><html> <head> <meta http-equiv=\"refresh\" content=\"3\" /> </head> <body>";  
+  src += createIconTextLine(img_temp, String(temperature) + " &#8451;");
+  src += createIconTextLine(img_pres, String(pressure) + " Bar");
+  src += createIconTextLine(img_hum, String(humidity) + " %");
+  String rgbwText = "Amb: " + String(ambient) + " lux  (R: " + String(red) + "  G: " + String(green) + "  B: " + String(blue) + "  W: " + String(white) + ")";
+  src += createIconTextLine(img_rgb, rgbwText);  
   src +="</body></html>";  
   return src;
 }
@@ -408,27 +369,24 @@ String createJSONPage(float temp,float pres, float hum,float r,float g,float b, 
 /**
  * @brief Scans all the I2C addresses, and (now) displays the result on the serial port.
  */
-void I2Cscan() 
+String I2CscanReport() 
 {
-    // scan for i2c devices
+  String report;
   byte error, address;
-  int nDevices;
-
-  Serial.println("Scanning...");
-
-  nDevices = 0;
   for(address = 1; address < 127; address++ ) 
   {
-    // The i2c_scanner uses the return value of
-    // the Write.endTransmisstion to see if
-    // a device did acknowledge to the address.
     Wire.beginTransmission(address);
     error = Wire.endTransmission();
-    Serial.print(address,HEX);
-    Serial.print(" ");
-    Serial.print(error);
-    Serial.print("\n");
+    if (error == 0)
+    {
+      report += String(address, HEX) + ":OK ";  
+    }
+    else if (error == 4)
+    {
+      report += String(address, HEX) + ":ERR ";
+    }
   }
+  return report;
 }
 
 
@@ -458,8 +416,13 @@ void serverSetup()
   }
 
   server.on("/", []() {
-    getRGBWdata(RGBWData);
-    server.send(200, "text/html", createMainPage((float)RGBWData[0]/96.0f,(float)RGBWData[1]/74.0f,(float)RGBWData[2]/56.0f));
+    float amb = RGBWSensor.getAmbientLight();
+    uint16_t r = RGBWSensor.getRed();
+    uint16_t g = RGBWSensor.getGreen();
+    uint16_t b = RGBWSensor.getBlue();
+    uint16_t w = RGBWSensor.getWhite();
+    
+    server.send(200, "text/html", createMainPage(1.1f, 2.2f, 3.3f,amb,r,g,b,w));
   });
 
   server.on("/control", []() {
@@ -467,41 +430,20 @@ void serverSetup()
   });
 
   server.on("/json", []() {
-    server.send(200, "text/html", createJSONPage(1.1f, 2.2f, 3.3f, RGBWData[0],RGBWData[1],RGBWData[2],RGBWData[3] , 8.8f, 9.9f));
+    server.send(200, "text/html", createJSONPage(1.1f, 2.2f, 3.3f, 4.4f,5.5f,6.6f,7.7f , 8.8f, 9.9f));
   });
+
+  //TMP
+  server.on("/i2c", []() {
+    server.send(200, "text/html", I2CscanReport());
+  });
+  
   server.begin();
 }
 
-//TMP
-void enableVEML6040()
-{
-  Wire.beginTransmission(VEML6040_ADDRESS);
-  Wire.write(VEML6040_CONF); // Command code for configuration register
-  Wire.write(IT << 4); // Bit 3 must be 0, bit 0 is 0 for run and 1 for shutdown, LS Byte
-  Wire.write(0x00); // MS Byte
-  Wire.endTransmission();
-}
 
-//TMP
-uint16_t getRGBWdata(uint16_t * destination)
-{
-    for (int j = 0; j < 4; j++)
-    {
-    uint8_t rawData[2] = {0, 0};
-    Wire.beginTransmission(VEML6040_ADDRESS);
-    Wire.write(VEML6040_R_DATA + j);        // Command code for reading rgbw data channels in sequence
-    Wire.endTransmission(false);  // Send the Tx buffer, but send a restart to keep connection alive
 
-    Wire.requestFrom(VEML6040_ADDRESS, 2);  // Read two bytes from slave register address 
-    uint8_t i = 0;
-    while (Wire.available()) 
-    {
-        rawData[i++] = Wire.read();       // Put read results in the Rx buffer
-    }     
-    Wire.endTransmission();
-    destination[j] = ((uint16_t) rawData[1] << 8) | rawData[0];
-    } 
-}
+
 
 
 
@@ -519,18 +461,41 @@ void setup()
   serverSetup();
 
   Wire.begin(PIN_SDA,PIN_SCL);
-  Wire.setClock(200000);
-  I2Cscan();
+  //Wire.setClock(100000);
+  
 
-  enableVEML6040(); // initalize sensor
-  delay(150);
+  if(!RGBWSensor.begin()) {
+    Serial.println("ERROR: couldn't detect the sensor");
+  }
+
+  RGBWSensor.setConfiguration(VEML6040_IT_640MS + VEML6040_AF_AUTO + VEML6040_SD_ENABLE);
+
+  delay(1500);
+
+  
+
+  /*enableVEML6040(); // initalize sensor
+  delay(150);*/
 }
 
 /**
  * @brief The main loop. 
  */
 void loop() {
+  Serial.print("RED: ");
+  Serial.print(RGBWSensor.getRed()); 
+  Serial.print(" GREEN: ");
+  Serial.print(RGBWSensor.getGreen());  
+  Serial.print(" BLUE: ");
+  Serial.print(RGBWSensor.getBlue()); 
+  Serial.print(" WHITE: ");
+  Serial.print(RGBWSensor.getWhite());
+  Serial.print(" CCT: ");
+  Serial.print(RGBWSensor.getCCT());  
+  Serial.print(" AL: ");
+  Serial.println(RGBWSensor.getAmbientLight());   
   server.handleClient();
+  delay(400); 
 }
 
 
