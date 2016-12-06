@@ -14,7 +14,7 @@
 #include <BME280.h>
 
 
-
+#include <Esp.h>
 #include <ESP8266WebServer.h>
 #include <ESP8266WiFi.h>
 #include <ESP8266WiFiAP.h>
@@ -86,6 +86,7 @@ const char* img_temp = "data:image/png;base64,"
 "uBuzRhDV9ajv4HMBwDr/XOzJfQzUpSxbC7wXK/8GJfqZMi8AyjDf/G4QxzBLX7fGwQDOAW7GTHs7"
 "Y+VexE6LRwwATmBrCgQUpejX2cGWyI4Ca0sVuBcALAg19sl3p3wLHLddaHqpg1f18OtsRCIyAbNJ"
 "chNmhlcLTLMt4QDmDfEOsFVVj3pxIgX9C9XLVRr/P5iGAAAAAElFTkSuQmCC";
+
 
 //Pressure symbol 64x64
 const char* img_pres = "data:image/png;base64,"
@@ -319,14 +320,30 @@ String createMainPage(float temperature,float pressure, float humidity,
   float ambient,uint16_t red,uint16_t green, uint16_t blue,uint16_t white)
 {
   String src = "";
-  src += "<!DOCTYPE html><html> <head> <meta http-equiv=\"refresh\" content=\"3\" /> </head> <body>";  
-  src += createIconTextLine(img_temp, String(temperature) + " &#8451;");
-  src += createIconTextLine(img_pres, String(pressure) + " Bar");
-  src += createIconTextLine(img_hum, String(humidity) + " %");
+  src += "<!DOCTYPE html><html> <head> <meta http-equiv=\"refresh\" content=\"5\" /> </head> <body>";  
+  //src += createIconTextLine(img_temp, String(temperature) + " &#8451;");
+  //src += createIconTextLine(img_pres, String(pressure) + " Bar");
+  //src += createIconTextLine(img_hum, String(humidity) + " %");
   String rgbwText = "Amb: " + String(ambient) + " lux  (R: " + String(red) + "  G: " + String(green) + "  B: " + String(blue) + "  W: " + String(white) + ")";
-  src += createIconTextLine(img_rgb, rgbwText);  
+  src += createIconTextLine(img_rgb, rgbwText);
+  //src += createIconTextLine(img_rgb, String("0.0/0.0"));
+  src += "<br />";
+  src += "<a href=\"/settings\">Settings</a> ";
+  src += "<a href=\"/status\">Status</a> ";
+  src += "<a href=\"/developer\">Developer</a> ";
+  src += "<a href=\"/debug\">Debug</a> ";
   src +="</body></html>";  
   return src;
+}
+
+String createStatusPage(char* keys[], String values[],int rowcount)
+{
+  String src = "";
+  src += "<!DOCTYPE html><html><body>";
+  src += createKeyValueTable(keys, values, rowcount);
+  src +="</body></html>";
+  
+  
 }
 
 /**
@@ -340,7 +357,7 @@ String createControlPage()
 /**
  * @brief Displays the measured data in JSON format.  Displayed: Temp., Press., Hum., RGBW, UVAB
  */
-String createJSONPage(float temp,float pres, float hum,float r,float g,float b, float w,float uva,float uvb)
+String createJSONPage(float temp,float pres, float hum,float a,float r,float g,float b, float w,float uva,float uvb)
 {
   String src = "";
   src += "{\n";
@@ -352,6 +369,7 @@ String createJSONPage(float temp,float pres, float hum,float r,float g,float b, 
   src += "    \"hum\": \"" + String(hum) + "\",\n";
   src += "  },\n";
   src += "  \"RGB\": {";
+  src += "    \"A\": \"" + String(a) + "\",\n";
   src += "    \"R\": \"" + String(r) + "\",\n";
   src += "    \"G\": \"" + String(g) + "\",\n";
   src += "    \"B\": \"" + String(b) + "\",\n";
@@ -420,22 +438,44 @@ void serverSetup()
     uint16_t r = RGBWSensor.getRed();
     uint16_t g = RGBWSensor.getGreen();
     uint16_t b = RGBWSensor.getBlue();
-    uint16_t w = RGBWSensor.getWhite();
-    
+    uint16_t w = RGBWSensor.getWhite();    
     server.send(200, "text/html", createMainPage(1.1f, 2.2f, 3.3f,amb,r,g,b,w));
   });
 
-  server.on("/control", []() {
-    server.send(200, "text/html", "Control will be implemented later");
-  });
 
   server.on("/json", []() {
-    server.send(200, "text/html", createJSONPage(1.1f, 2.2f, 3.3f, 4.4f,5.5f,6.6f,7.7f , 8.8f, 9.9f));
+    float amb = RGBWSensor.getAmbientLight();
+    uint16_t r = RGBWSensor.getRed();
+    uint16_t g = RGBWSensor.getGreen();
+    uint16_t b = RGBWSensor.getBlue();
+    uint16_t w = RGBWSensor.getWhite();
+    server.send(200, "text/html", createJSONPage(1.1f, 2.2f, 3.3f, amb, r, g, b, w, 8.8f, 9.9f));
   });
 
-  //TMP
-  server.on("/i2c", []() {
-    server.send(200, "text/html", I2CscanReport());
+  server.on("/status", []() {
+    
+    
+    char * keys[] = {"Chip ID","Heap size","Compilation date","Compilation time"};
+    String values[4];
+    values[0] = String(ESP.getChipId());
+    values[1] = String(ESP.getFreeHeap());
+    values[2] = String(__DATE__ );
+    values[3] = String(__TIME__);
+    
+    server.send(200, "text/html", createStatusPage(keys, values, 4));
+  });
+
+  server.on("/developer", []() {
+    server.send(200, "text/html", "Developer options will be implemented later. First leds");
+  });
+
+  server.on("/settings", []() {
+    server.send(200, "text/html", "Settings will be implemented later. Content: ssid, pass,page autorefresh");
+  });
+  
+  //Temporary page to check stuff
+  server.on("/debug", []() {
+    server.send(200, "text/html", String("<html> <h2>") + I2CscanReport() + String("</h2></html>"));
   });
   
   server.begin();
@@ -482,20 +522,7 @@ void setup()
  * @brief The main loop. 
  */
 void loop() {
-  Serial.print("RED: ");
-  Serial.print(RGBWSensor.getRed()); 
-  Serial.print(" GREEN: ");
-  Serial.print(RGBWSensor.getGreen());  
-  Serial.print(" BLUE: ");
-  Serial.print(RGBWSensor.getBlue()); 
-  Serial.print(" WHITE: ");
-  Serial.print(RGBWSensor.getWhite());
-  Serial.print(" CCT: ");
-  Serial.print(RGBWSensor.getCCT());  
-  Serial.print(" AL: ");
-  Serial.println(RGBWSensor.getAmbientLight());   
-  server.handleClient();
-  delay(400); 
+    server.handleClient();
 }
 
 
