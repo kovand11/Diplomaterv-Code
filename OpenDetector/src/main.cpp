@@ -6,6 +6,9 @@
 
 #include <EEPROM.h>
 
+
+
+
 #define EEPROM_USER 0
 #define EEPROM_PASSWORD 64
 #define EEPROM_SERVERADDRESS 128
@@ -17,41 +20,76 @@ void writeToEEPROM(int address,String value)
   int addr = address;
   for (int i=0; i < value.length();i++)
   {
-    EEPROM.write(addr, value[i]);
+    EEPROM.write(addr, (byte)value[i]);
     addr++;
   }
   EEPROM.write(addr, 0);
 }
 
-String readFromEEPROM(int address)
+String readFromEEPROM(int address,int maxlen)
 {
   String str = "";
   int addr = address;
   while (true)
   {
+    if (addr - address >=maxlen)
+      break;
     byte ch = EEPROM.read(addr);
     addr++;
     if (ch == 0)
       break;
     else
-      str += ch;
+      str += (char)ch;
   }
+  return str;
 
 }
 
 void performSetup()
 {
   Serial.println("Setup started");
-  WiFi.softAP("OpenDetector-Setup");
-
+  WiFi.mode(WIFI_AP);
+  WiFi.begin("OpenDetector-Setup");
   server.on("/", [](){
-    server.send(200, "text/html", "Form here");
+
+    EEPROM.begin(192);
+    String user = readFromEEPROM(EEPROM_USER,64);
+    String password = readFromEEPROM(EEPROM_PASSWORD,64);
+    String serverAddress = readFromEEPROM(EEPROM_SERVERADDRESS,64);
+    EEPROM.end();
+
+    String form = "";
+    form += "<!DOCTYPE html>\n";
+    form += "<html>\n";
+    form += "<body>\n";
+    form += "<form action=\"/process\">\n";
+    form += "SSID:<br>\n";
+    form += "<input type=\"text\" name=\"user\" value=\"" + user + "\">\n";
+    form += "<br>\n";
+    form += "Password:<br>\n";
+    form += "<input type=\"text\" name=\"password\" value=\"" + password + "\">\n";
+    form += "<br><br>\n";
+    form += "Server address:<br>\n";
+    form += "<input type=\"text\" name=\"serveraddress\" value=\"" + serverAddress + "\">\n";
+    form += "<br><br>\n";
+    form += "<input type=\"submit\" value=\"Submit\">\n";
+    form += "</form>\n";
+    form += "</body>\n";
+    form += "</html>\n";
+
+    server.send(200, "text/html", form);
   });
 
   server.on("/process", [](){
     String user = server.arg("user");
     String password = server.arg("password");
     String serverAddress = server.arg("serveraddress");
+    Serial.println("Form " +user+ " " +password+ " "+serverAddress);
+    EEPROM.begin(192);
+    writeToEEPROM(EEPROM_USER, user);
+    writeToEEPROM(EEPROM_PASSWORD, password);
+    writeToEEPROM(EEPROM_SERVERADDRESS, serverAddress);
+    EEPROM.end();
     server.send(200, "text/html", "Rebooting...");
     ESP.reset();
   });
@@ -66,19 +104,17 @@ void setup()
 {
   Serial.begin(115200);
   EEPROM.begin(192);
-  String user = readFromEEPROM(EEPROM_USER);
-  String password = readFromEEPROM(EEPROM_PASSWORD);
-  String serverAddress = readFromEEPROM(EEPROM_SERVERADDRESS);
+  String user = readFromEEPROM(EEPROM_USER,64);
+  String password = readFromEEPROM(EEPROM_PASSWORD,64);
+  String serverAddress = readFromEEPROM(EEPROM_SERVERADDRESS,64);
+  EEPROM.end();
 
   Serial.println("Awake");
   Serial.println("User: " + user);
   Serial.println("Password: " + password);
   Serial.println("ServerAddress" + serverAddress);
 
-
-  if (user == "" || password == "" || serverAddress == "")
-    performSetup();
-
+  WiFi.mode(WIFI_STA);
   WiFi.begin(user.c_str(), password.c_str());
   delay(500);
   for  (int i = 0; WiFi.status() != WL_CONNECTED; i++)
@@ -87,7 +123,7 @@ void setup()
     if (i == 5)
     {
       performSetup();
-      break;
+      return;
     }
   }
   Serial.println("Here notifies the server");
@@ -103,16 +139,19 @@ void setup()
   else
   {
     performSetup();
+    return;
   }
   http.end();
 
 
   Serial.println("Goes deep sleep");
 
-  ESP.deepSleep(100000000);
+  //ESP.deepSleep(100000000);
 }
 
 void loop()
 {
-    server.handleClient();
+  server.handleClient();
+  Serial.printf("Stations connected = %d\n", WiFi.softAPgetStationNum());
+  delay(500);
 }
