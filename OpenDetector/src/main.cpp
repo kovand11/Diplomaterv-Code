@@ -13,6 +13,11 @@
 #define EEPROM_PASSWORD 64
 #define EEPROM_SERVERADDRESS 128
 
+#define LED 5
+#define SW 14
+#define IRST 16
+
+
 ESP8266WebServer server(80);
 
 void writeToEEPROM(int address,String value)
@@ -104,6 +109,11 @@ void setup()
 {
   Serial.begin(115200);
   EEPROM.begin(192);
+
+  pinMode(LED, OUTPUT);
+  pinMode(SW, INPUT);
+  digitalWrite(LED, HIGH);
+
   String user = readFromEEPROM(EEPROM_USER,64);
   String password = readFromEEPROM(EEPROM_PASSWORD,64);
   String serverAddress = readFromEEPROM(EEPROM_SERVERADDRESS,64);
@@ -154,4 +164,6 @@ void loop()
   server.handleClient();
   Serial.printf("Stations connected = %d\n", WiFi.softAPgetStationNum());
   delay(500);
+  bool sw = digitalRead(SW);
+  digitalWrite(LED,sw);
 }
