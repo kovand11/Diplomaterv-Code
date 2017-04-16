@@ -4,12 +4,30 @@
 MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWindow)
 {
     ui->setupUi(this);
+    connect(ui->widgetListButton,&QToolButton::clicked,this,&MainWindow::onWidgetList);
+    connect(ui->settingsButton,&QToolButton::clicked,this,&MainWindow::onSettings);
+    connect(ui->programmingButton,&QToolButton::clicked,this,&MainWindow::onProgramming);
     connect(ui->closeButton,&QToolButton::clicked,this,&MainWindow::onClose);
 }
 
 MainWindow::~MainWindow()
 {
     delete ui;
+}
+
+void MainWindow::onWidgetList()
+{
+    ui->pageStack->setCurrentIndex(0);
+}
+
+void MainWindow::onSettings()
+{
+    ui->pageStack->setCurrentIndex(1);
+}
+
+void MainWindow::onProgramming()
+{
+    ui->pageStack->setCurrentIndex(2);
 }
 
 void MainWindow::onClose()

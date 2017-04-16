@@ -19,6 +19,9 @@ private:
     Ui::MainWindow *ui;
 
 private slots:
+    void onWidgetList();
+    void onSettings();
+    void onProgramming();
     void onClose();
 };
 
