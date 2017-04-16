@@ -31,6 +31,17 @@ void MainWindow::onSettings()
 void MainWindow::onProgramming()
 {
     ui->pageStack->setCurrentIndex(2);
+    QSqlDatabase db = QSqlDatabase::addDatabase("QMYSQL");
+    db.setHostName("localhost");
+    db.setUserName("root");
+    db.setPassword("nut8A5+-");
+    db.setDatabaseName("testdb");
+
+    if (db.open())
+        qDebug() << "ISOPEN";
+    else
+        qDebug() << "ISNOTOPEN";
+
 }
 
 void MainWindow::onClose()
