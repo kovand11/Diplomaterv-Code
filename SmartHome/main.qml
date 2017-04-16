@@ -29,7 +29,7 @@ ApplicationWindow {
 
         ToolButton
         {
-            Layout.margins: 10,10,10,10
+            Layout.margins: 20,20,20,20
             iconSource: "/settings.png"
             onClicked:
             {
@@ -41,7 +41,7 @@ ApplicationWindow {
 
         ToolButton
         {
-            Layout.margins: 10,10,10,10
+            Layout.margins: 20,20,20,20
             iconSource: "/close.png"
             onClicked: closeDialog.open();
         }
