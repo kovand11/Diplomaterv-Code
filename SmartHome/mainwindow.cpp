@@ -23,6 +23,9 @@ void MainWindow::onWidgetList()
 void MainWindow::onSettings()
 {
     ui->pageStack->setCurrentIndex(1);
+    QProcess *process = new QProcess(this);
+    QString file = "matchbox-keyboard";
+    process->start(file);
 }
 
 void MainWindow::onProgramming()
