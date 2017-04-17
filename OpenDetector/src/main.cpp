@@ -138,13 +138,17 @@ void setup()
   }
   Serial.println("Here notifies the server");
   HTTPClient http;
-  http.begin(serverAddress + "/opendetector-notify?state=" + (true ? "open" : "close"));
+  bool sw = digitalRead(SW);
+  http.begin(serverAddress + "/opendetector.php?state=" + (sw ? "open" : "close"));
   int httpCode = http.GET();
   if (httpCode == HTTP_CODE_OK)
   {
     String payload = http.getString();
     if (payload == "forcesetup")
+    {
       performSetup();
+      return;
+    }
   }
   else
   {
@@ -152,11 +156,9 @@ void setup()
     return;
   }
   http.end();
-
-
   Serial.println("Goes deep sleep");
-
-  //ESP.deepSleep(100000000);
+  ESP.deepSleep(100000000);
+  digitalWrite(LED, LOW);
 }
 
 void loop()
@@ -164,6 +166,4 @@ void loop()
   server.handleClient();
   Serial.printf("Stations connected = %d\n", WiFi.softAPgetStationNum());
   delay(500);
-  bool sw = digitalRead(SW);
-  digitalWrite(LED,sw);
 }
