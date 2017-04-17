@@ -15,15 +15,15 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 //Establish database connection
 $servername = "localhost";
 $username = "root";
-$password = "nut8A5+-";
-$dbname = "testdb";
+$password = "abcd1234";
+$dbname = "smarthome";
 $conn = new mysqli($servername, $username, $password, $dbname);
 if ($conn->connect_error) {
     die("Connection failed: " . $conn->connect_error);
 }
-$sql = "INSERT INTO `OpenDetector` (`ID`, `DEVICE`, `OPEN`, `TIMESTAMP`) VALUES (NULL, '". $device ."', '" . $open ."', CURRENT_TIMESTAMP)";
+$sql = "INSERT INTO `opendetector` (`ID`, `DEVICE`, `OPEN`, `TIMESTAMP`) VALUES (NULL, '". $device ."', '" . $open ."', CURRENT_TIMESTAMP)";
 if ($conn->query($sql) === TRUE) {
-    echo "New record created successfully";
+    echo "ok";
 } else {
     echo "Error: " . $sql . "<br>" . $conn->error;
 }
