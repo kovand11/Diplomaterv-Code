@@ -34,13 +34,20 @@ void MainWindow::onProgramming()
     QSqlDatabase db = QSqlDatabase::addDatabase("QMYSQL");
     db.setHostName("localhost");
     db.setUserName("root");
-    db.setPassword("nut8A5+-");
-    db.setDatabaseName("testdb");
+    db.setPassword("abcd1234");
+    db.setDatabaseName("smarthome");
+    db.open();
 
-    if (db.open())
-        qDebug() << "ISOPEN";
-    else
-        qDebug() << "ISNOTOPEN";
+    QSqlQuery query;
+    query.exec("SELECT * FROM opendetector");
+    while (query.next()) {
+        QString device = query.value(0).toString();
+        qDebug() << device;
+    }
+
+    db.close();
+
+
 
 }
 
