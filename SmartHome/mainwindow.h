@@ -45,6 +45,8 @@ private slots:
     void onClose();
     void onSettingsApply();
     void onSettingsReset();
+    void onToggleFullscreen();
+    void onKeyboard();
 
 
 };

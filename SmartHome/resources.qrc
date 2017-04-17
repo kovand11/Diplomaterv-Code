@@ -4,5 +4,6 @@
         <file>icons/listing.png</file>
         <file>icons/settings.png</file>
         <file>icons/program.png</file>
+        <file>icons/fullscreen.png</file>
     </qresource>
 </RCC>

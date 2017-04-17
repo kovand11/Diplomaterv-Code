@@ -10,6 +10,8 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
     connect(ui->closeButton,&QToolButton::clicked,this,&MainWindow::onClose);
     connect(ui->applySettingsButton,&QPushButton::clicked,this,&MainWindow::onSettingsApply);
     connect(ui->resetSettingsButton,&QPushButton::clicked,this,&MainWindow::onSettingsReset);
+    connect(ui->toggleFullscreenButton,&QToolButton::clicked,this,&MainWindow::onToggleFullscreen);
+    connect(ui->keyboardButton,&QPushButton::clicked,this,&MainWindow::onKeyboard);
 
 
 
@@ -30,10 +32,7 @@ void MainWindow::onWidgetList()
 
 void MainWindow::onSettings()
 {
-    ui->pageStack->setCurrentIndex(1);
-    QProcess *process = new QProcess(this);
-    QString file = "matchbox-keyboard";
-    process->start(file);
+    ui->pageStack->setCurrentIndex(1);    
 }
 
 void MainWindow::onProgramming()
@@ -97,4 +96,24 @@ void MainWindow::onSettingsReset()
     ui->showDebugWidgetCheckBox->setChecked(showDebugWidget);
     ui->showOpenDetectorDBWidgetCheckBox->setChecked(showOpenDetectorDBWidget);
     //ui->devicesEdit-
+}
+
+void MainWindow::onToggleFullscreen()
+{
+    if (this->isFullScreen())
+    {
+        this->showNormal();
+    }
+    else
+    {
+        this->showFullScreen();
+    }
+
+}
+
+void MainWindow::onKeyboard()
+{
+    QProcess *process = new QProcess(this);
+    QString file = "matchbox-keyboard";
+    process->start(file);
 }
