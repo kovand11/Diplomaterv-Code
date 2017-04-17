@@ -13,9 +13,11 @@ TEMPLATE = app
 
 
 SOURCES += main.cpp\
-        mainwindow.cpp
+        mainwindow.cpp \
+    debuglinewidget.cpp
 
-HEADERS  += mainwindow.h
+HEADERS  += mainwindow.h \
+    debuglinewidget.h
 
 FORMS    += mainwindow.ui
 
