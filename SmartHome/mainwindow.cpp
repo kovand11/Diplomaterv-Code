@@ -13,6 +13,16 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
     connect(ui->toggleFullscreenButton,&QToolButton::clicked,this,&MainWindow::onToggleFullscreen);
     connect(ui->keyboardButton,&QPushButton::clicked,this,&MainWindow::onKeyboard);
 
+    QSettings settings("AndrasKovacs", "Smart Home");
+    serverAddress = settings.value("serverAddress").toString();
+    databaseName = settings.value("databaseName").toString();
+    username = settings.value("username").toString();
+    password = settings.value("password").toString();
+    showDebugWidget = settings.value("showDebugWidget").toBool();
+    showOpenDetectorDBWidget = settings.value("showOpenDetectorDBWidget").toBool();
+    devices = settings.value("devices").toString();
+    this->onSettingsReset();
+
 
 
 
@@ -22,6 +32,14 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
 
 MainWindow::~MainWindow()
 {
+    QSettings settings("AndrasKovacs", "Smart Home");
+    settings.setValue("serverAddress",serverAddress);
+    settings.setValue("databaseName",databaseName);
+    settings.setValue("username",username);
+    settings.setValue("password",password);
+    settings.setValue("showDebugWidget",showDebugWidget);
+    settings.setValue("showOpenDetectorDBWidget",showOpenDetectorDBWidget);
+    settings.setValue("devices",devices);
     delete ui;
 }
 
@@ -51,12 +69,13 @@ void MainWindow::onProgramming()
         QSqlQuery query;
         query.exec("SELECT * FROM opendetector");
         while (query.next()) {
-            for (int i=0;i<query.size();i++)
-            {
-                queryString += query.value(i).toString() + ",";
 
-            }
-            queryString += ";";
+            queryString += query.value(1).toString() + ", "
+                    + query.value(2).toString() + ", "
+                    + query.value(3).toString() + "; ";
+
+
+
         }
         debugLineWidget->setText(queryString);
     }
