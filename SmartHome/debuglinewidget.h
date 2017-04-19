@@ -2,21 +2,29 @@
 #define DEBUGLINEWIDGET_H
 
 #include <QObject>
-#include <QListWidget>
+#include <QLabel>
+#include <QPushButton>
+#include <QHBoxLayout>
+
+#include <QDateTime>
 
 class DebugLineWidget
 {
 public:
-    DebugLineWidget(QListWidget *listWidget,int widgetRow);
-    void setText(QString text);
+    DebugLineWidget();
+    void addText(QString text);
+    QLayout *getLayout();
 
 private:
-    void updateWidget();
 
-    QListWidget* listWidget;
-    int widgetRow;
+    QStringList lines;
+    int currentLine;
 
-    QString text;
+    QLabel* textLabel;
+    QLabel* numberLabel;
+    QPushButton *nextButton;
+    QPushButton *prevButton;
+    QHBoxLayout *layout;
 
 
 

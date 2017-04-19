@@ -26,8 +26,28 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
 
 
 
-    ui->listWidget->addItem("");
-    debugLineWidget = new DebugLineWidget(ui->listWidget,0);
+
+
+
+    debugLineWidget = new DebugLineWidget();
+
+    ui->widgetLayout->addLayout(debugLineWidget->getLayout());
+    ui->widgetLayout->addWidget(new QPushButton("aaaa"));
+    ui->widgetLayout->addWidget(new QPushButton("aaaa"));
+    ui->widgetLayout->addWidget(new QPushButton("aaaa"));
+    ui->widgetLayout->addWidget(new QPushButton("aaaa"));
+    ui->widgetLayout->addWidget(new QPushButton("aaaa"));
+    ui->widgetLayout->addWidget(new QPushButton("aaaa"));
+    ui->widgetLayout->addWidget(new QPushButton("aaaa"));
+    ui->widgetLayout->addWidget(new QPushButton("aaaa"));
+    ui->widgetLayout->addWidget(new QPushButton("aaaa"));
+    ui->widgetLayout->addWidget(new QPushButton("aaaa"));
+    ui->widgetLayout->addWidget(new QPushButton("aaaa"));
+    ui->widgetLayout->addWidget(new QPushButton("aaaa"));
+    ui->widgetLayout->addWidget(new QPushButton("aaaa"));
+
+
+    debugLineWidget->addText("Application started");
 }
 
 MainWindow::~MainWindow()
@@ -77,11 +97,11 @@ void MainWindow::onProgramming()
 
 
         }
-        debugLineWidget->setText(queryString);
+        debugLineWidget->addText(queryString);
     }
     else
     {
-        debugLineWidget->setText("Database error");
+        debugLineWidget->addText("Database error");
     }
 
     db.close();
