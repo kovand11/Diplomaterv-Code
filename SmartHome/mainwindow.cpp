@@ -32,20 +32,6 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
     debugLineWidget = new DebugLineWidget();
 
     ui->widgetLayout->addLayout(debugLineWidget->getLayout());
-    ui->widgetLayout->addWidget(new QPushButton("aaaa"));
-    ui->widgetLayout->addWidget(new QPushButton("aaaa"));
-    ui->widgetLayout->addWidget(new QPushButton("aaaa"));
-    ui->widgetLayout->addWidget(new QPushButton("aaaa"));
-    ui->widgetLayout->addWidget(new QPushButton("aaaa"));
-    ui->widgetLayout->addWidget(new QPushButton("aaaa"));
-    ui->widgetLayout->addWidget(new QPushButton("aaaa"));
-    ui->widgetLayout->addWidget(new QPushButton("aaaa"));
-    ui->widgetLayout->addWidget(new QPushButton("aaaa"));
-    ui->widgetLayout->addWidget(new QPushButton("aaaa"));
-    ui->widgetLayout->addWidget(new QPushButton("aaaa"));
-    ui->widgetLayout->addWidget(new QPushButton("aaaa"));
-    ui->widgetLayout->addWidget(new QPushButton("aaaa"));
-
 
     debugLineWidget->addText("Application started");
 }
@@ -85,19 +71,16 @@ void MainWindow::onProgramming()
 
     if (databaseOk)
     {
-        QString queryString = "";
         QSqlQuery query;
         query.exec("SELECT * FROM opendetector");
         while (query.next()) {
 
-            queryString += query.value(1).toString() + ", "
-                    + query.value(2).toString() + ", "
-                    + query.value(3).toString() + "; ";
+            QString queryString = query.value(3).toString() + ": Device "
+                    + query.value(1).toString() + " "
+                    + (query.value(2).toString() == "0" ? "closed" : "opened");
+            debugLineWidget->addText(queryString);
 
-
-
-        }
-        debugLineWidget->addText(queryString);
+        }       
     }
     else
     {
