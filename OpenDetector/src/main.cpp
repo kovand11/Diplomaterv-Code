@@ -6,9 +6,9 @@
 
 #include <EEPROM.h>
 
+#include<limits>
 
-
-
+#define EEPROM_MAXLEN 64
 #define EEPROM_USER 0
 #define EEPROM_PASSWORD 64
 #define EEPROM_SERVERADDRESS 128
@@ -16,7 +16,6 @@
 #define LED 5
 #define SW 14
 #define IRST 16
-
 
 ESP8266WebServer server(80);
 
@@ -47,20 +46,20 @@ String readFromEEPROM(int address,int maxlen)
       str += (char)ch;
   }
   return str;
-
 }
 
 void performSetup()
 {
   Serial.println("Setup started");
   WiFi.mode(WIFI_AP);
-  WiFi.begin("OpenDetector-Setup");
+  String apName = "OpenDetectorSetup-" + String(ESP.getChipId(),HEX);
+  WiFi.begin(apName.c_str());
   server.on("/", [](){
 
     EEPROM.begin(192);
-    String user = readFromEEPROM(EEPROM_USER,64);
-    String password = readFromEEPROM(EEPROM_PASSWORD,64);
-    String serverAddress = readFromEEPROM(EEPROM_SERVERADDRESS,64);
+    String user = readFromEEPROM(EEPROM_USER,EEPROM_MAXLEN);
+    String password = readFromEEPROM(EEPROM_PASSWORD,EEPROM_MAXLEN);
+    String serverAddress = readFromEEPROM(EEPROM_SERVERADDRESS,EEPROM_MAXLEN);
     EEPROM.end();
 
     String form = "";
@@ -130,34 +129,38 @@ void setup()
   for  (int i = 0; WiFi.status() != WL_CONNECTED; i++)
   {
     delay(500);
-    if (i == 5)
+    if (i == 10)
     {
+      Serial.println("Setup mode: unable to connect");
       performSetup();
       return;
     }
   }
-  Serial.println("Here notifies the server");
-  HTTPClient http;
   bool sw = digitalRead(SW);
-  http.begin(serverAddress + "/opendetector.php?state=" + (sw ? "open" : "close"));
+  Serial.println("Server notification " + String(ESP.getChipId()) + " " + (sw ? "open" : "close") );
+  HTTPClient http;
+  http.begin("http://"+serverAddress + "/opendetector.php?device=" + String(ESP.getChipId()) + "&open=" + (sw ? "1" : "0"));
   int httpCode = http.GET();
   if (httpCode == HTTP_CODE_OK)
   {
     String payload = http.getString();
+    Serial.println("Server payload: " + payload);
     if (payload == "forcesetup")
     {
+      Serial.println("Setup mode: forced");
       performSetup();
       return;
     }
   }
   else
   {
+    Serial.println("Setup mode: no server response (error " + String(httpCode) + ")");
     performSetup();
     return;
   }
   http.end();
   Serial.println("Goes deep sleep");
-  ESP.deepSleep(100000000);
+  ESP.deepSleep(std::numeric_limits<uint32_t>::max());
   digitalWrite(LED, LOW);
 }
 
