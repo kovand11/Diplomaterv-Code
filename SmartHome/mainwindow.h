@@ -6,6 +6,7 @@
 #include <QDebug>
 
 #include "debuglinewidget.h"
+#include "environmentalsensorwidget.h"
 
 #include <QtSql/QtSql>
 #include <QtSql/QSqlDatabase>
@@ -27,6 +28,8 @@ private:
     Ui::MainWindow *ui;
 
     DebugLineWidget *debugLineWidget;
+    EnvironmentalSensorWidget *environmentalSensorWidget;
+
 
     //settings
     QString serverAddress;

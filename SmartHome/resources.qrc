@@ -5,5 +5,9 @@
         <file>icons/settings.png</file>
         <file>icons/program.png</file>
         <file>icons/fullscreen.png</file>
+        <file>icons/hum.png</file>
+        <file>icons/press.png</file>
+        <file>icons/temp.png</file>
+        <file>icons/light.png</file>
     </qresource>
 </RCC>

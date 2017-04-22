@@ -29,9 +29,14 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
 
 
 
+
     debugLineWidget = new DebugLineWidget();
+    environmentalSensorWidget = new EnvironmentalSensorWidget();
+    environmentalSensorWidget->setData(23.5f,1025.1f,25.5f,32.4f,25,67,44,115);
 
     ui->widgetLayout->addLayout(debugLineWidget->getLayout());
+    ui->widgetLayout->addSpacerItem(new QSpacerItem(20,20));
+    ui->widgetLayout->addLayout(environmentalSensorWidget->getLayout());
 
     debugLineWidget->addText("Application started");
 }
