@@ -1,6 +1,6 @@
 #include "environmentalsensorwidget.h"
 
-EnvironmentalSensorWidget::EnvironmentalSensorWidget(QObject *parent) : QObject(parent)
+EnvironmentalSensorWidget::EnvironmentalSensorWidget(QString ip, QObject *parent) :  QObject(parent), LineWidget(ip)
 {
     //set data
     createWidget();
@@ -26,6 +26,11 @@ void EnvironmentalSensorWidget::setData(float temperature, float pressure, float
     this->blueCounter = blueCounter;
     this->whiteCounter = whiteCounter;
     updateWidget();
+}
+
+void EnvironmentalSensorWidget::acquireData()
+{
+    pressure += 1.0f;
 }
 
 void EnvironmentalSensorWidget::createWidget()
@@ -81,7 +86,9 @@ void EnvironmentalSensorWidget::createWidget()
 
     lightAndLedLayout->addWidget(new QCheckBox("Blue"));
     lightAndLedLayout->addWidget(new QCheckBox("Amber"));
-    lightAndLedLayout->addWidget(new QPushButton("Refresh"));
+    QPushButton * refreshButton = new QPushButton("Refresh");
+    connect(refreshButton,&QPushButton::clicked,[&](){ this->stopPolling(); });
+    lightAndLedLayout->addWidget(refreshButton);
 
 
     layout->addLayout(tempPressHumLayout);

@@ -7,16 +7,20 @@
 #include <QCheckBox>
 #include <QPushButton>
 
-class EnvironmentalSensorWidget : public QObject
+#include "linewidget.h"
+
+class EnvironmentalSensorWidget : public QObject, public LineWidget
 {
     Q_OBJECT
 public:
-    explicit EnvironmentalSensorWidget(QObject *parent = 0);
+    explicit EnvironmentalSensorWidget(QString ip,QObject *parent = 0);
 
     QLayout *getLayout();
 
     void setData(float temperature, float pressure, float humidity, float ambientLight,
                  int redCounter, int greenCounter, int blueCounter, int whiteCounter);
+
+    void acquireData() override;
 
 signals:
 

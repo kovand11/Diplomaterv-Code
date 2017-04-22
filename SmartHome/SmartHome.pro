@@ -17,11 +17,13 @@ TEMPLATE = app
 SOURCES += main.cpp\
         mainwindow.cpp \
     debuglinewidget.cpp \
-    environmentalsensorwidget.cpp
+    environmentalsensorwidget.cpp \
+    linewidget.cpp
 
 HEADERS  += mainwindow.h \
     debuglinewidget.h \
-    environmentalsensorwidget.h
+    environmentalsensorwidget.h \
+    linewidget.h
 
 FORMS    += mainwindow.ui
 
