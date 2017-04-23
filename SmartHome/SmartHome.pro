@@ -18,12 +18,14 @@ SOURCES += main.cpp\
         mainwindow.cpp \
     debuglinewidget.cpp \
     environmentalsensorwidget.cpp \
-    linewidget.cpp
+    linewidget.cpp \
+    opendetectorwidget.cpp
 
 HEADERS  += mainwindow.h \
     debuglinewidget.h \
     environmentalsensorwidget.h \
-    linewidget.h
+    linewidget.h \
+    opendetectorwidget.h
 
 FORMS    += mainwindow.ui
 

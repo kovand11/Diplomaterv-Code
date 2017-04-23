@@ -7,6 +7,7 @@
 
 #include "debuglinewidget.h"
 #include "environmentalsensorwidget.h"
+#include "opendetectorwidget.h"
 
 #include <QtSql/QtSql>
 #include <QtSql/QSqlDatabase>
@@ -29,6 +30,7 @@ private:
 
     DebugLineWidget *debugLineWidget;
     EnvironmentalSensorWidget *environmentalSensorWidget;
+    OpenDetectorWidget * openDetectorWidget;
 
 
     //settings

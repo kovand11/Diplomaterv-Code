@@ -35,9 +35,31 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
     environmentalSensorWidget->setData(23.5f,1025.1f,25.5f,32.4f,25,67,44,115);
     //environmentalSensorWidget->startPolling(100);
 
+    openDetectorWidget = new OpenDetectorWidget("");
+    openDetectorWidget->processSingleEvent(1551,true,"1991.01.25 22:46");
+    openDetectorWidget->processSingleEvent(1551,true,"1991.01.25 22:46");
+    openDetectorWidget->processSingleEvent(1551,true,"1991.01.25 22:46");
+    openDetectorWidget->processSingleEvent(1551,true,"1991.01.25 22:46");
+    openDetectorWidget->processSingleEvent(1551,true,"1991.01.25 22:46");
+    openDetectorWidget->processSingleEvent(1551,true,"1991.01.25 22:46");
+    openDetectorWidget->processSingleEvent(1551,true,"1991.01.25 22:46");
+    openDetectorWidget->processSingleEvent(1551,true,"1991.01.25 22:46");
+    openDetectorWidget->processSingleEvent(1551,true,"1991.01.25 22:46");
+    openDetectorWidget->processSingleEvent(1551,true,"1991.01.25 22:46");
+    openDetectorWidget->processSingleEvent(1551,true,"1991.01.25 22:46");
+    openDetectorWidget->processSingleEvent(1551,true,"1991.01.25 22:46");
+    openDetectorWidget->processSingleEvent(1551,true,"1991.01.25 22:46");
+    openDetectorWidget->createDoor(25411,true);
+    openDetectorWidget->createDoor(25451,false);
+    openDetectorWidget->createDoor(6585,true);
+
+
+
     ui->widgetLayout->addLayout(debugLineWidget->getLayout());
     ui->widgetLayout->addSpacerItem(new QSpacerItem(20,20));
     ui->widgetLayout->addLayout(environmentalSensorWidget->getLayout());
+    ui->widgetLayout->addSpacerItem(new QSpacerItem(20,20));
+    ui->widgetLayout->addLayout(openDetectorWidget->getLayout());
 
     debugLineWidget->addText("Application started");
 }

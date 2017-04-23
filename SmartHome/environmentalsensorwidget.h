@@ -27,8 +27,8 @@ signals:
 public slots:
 
 private:
-    void createWidget();
-    void updateWidget();
+    void createWidget() override;
+    void updateWidget() override;
 
     QVBoxLayout *layout;
 

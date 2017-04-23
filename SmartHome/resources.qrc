@@ -9,5 +9,7 @@
         <file>icons/press.png</file>
         <file>icons/temp.png</file>
         <file>icons/light.png</file>
+        <file>icons/locked.png</file>
+        <file>icons/unlocked.png</file>
     </qresource>
 </RCC>
