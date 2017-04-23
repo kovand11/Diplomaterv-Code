@@ -29,11 +29,11 @@ void OpenDetectorWidget::setDoorState(int id, bool isOpen)
     int index = doorIds.indexOf(id);
     if (index >= 0 && index < doorIds.size())
     {
-        //doorIcons.at(index)->setPixmap(nullptr);
+        doorIcons.at(index)->setPixmap(( isOpen ? QPixmap(":/icons/unlocked.png") : QPixmap(":/icons/locked.png") ));
     }
     else
     {
-        //add door
+        createDoor(id,isOpen);
     }
 
 }

@@ -41,17 +41,11 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
     openDetectorWidget->processSingleEvent(1551,true,"1991.01.25 22:46");
     openDetectorWidget->processSingleEvent(1551,true,"1991.01.25 22:46");
     openDetectorWidget->processSingleEvent(1551,true,"1991.01.25 22:46");
-    openDetectorWidget->processSingleEvent(1551,true,"1991.01.25 22:46");
-    openDetectorWidget->processSingleEvent(1551,true,"1991.01.25 22:46");
-    openDetectorWidget->processSingleEvent(1551,true,"1991.01.25 22:46");
-    openDetectorWidget->processSingleEvent(1551,true,"1991.01.25 22:46");
-    openDetectorWidget->processSingleEvent(1551,true,"1991.01.25 22:46");
-    openDetectorWidget->processSingleEvent(1551,true,"1991.01.25 22:46");
-    openDetectorWidget->processSingleEvent(1551,true,"1991.01.25 22:46");
-    openDetectorWidget->processSingleEvent(1551,true,"1991.01.25 22:46");
     openDetectorWidget->createDoor(25411,true);
     openDetectorWidget->createDoor(25451,false);
     openDetectorWidget->createDoor(6585,true);
+
+    wifiSocketWidget = new WifiSocketWidget("");
 
 
 
@@ -60,8 +54,12 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
     ui->widgetLayout->addLayout(environmentalSensorWidget->getLayout());
     ui->widgetLayout->addSpacerItem(new QSpacerItem(20,20));
     ui->widgetLayout->addLayout(openDetectorWidget->getLayout());
+    ui->widgetLayout->addSpacerItem(new QSpacerItem(20,20));
+    ui->widgetLayout->addLayout(wifiSocketWidget->getLayout());
 
     debugLineWidget->addText("Application started");
+
+    connectToDatabase();
 }
 
 MainWindow::~MainWindow()
@@ -77,6 +75,37 @@ MainWindow::~MainWindow()
     delete ui;
 }
 
+void MainWindow::connectToDatabase()
+{
+    if (database.isOpen())
+        database.close();
+
+    database = QSqlDatabase::addDatabase("QMYSQL");
+    database.setHostName(serverAddress);
+    database.setUserName(username);
+    database.setPassword(password);
+    database.setDatabaseName(databaseName);
+    bool databaseOk = database.open();
+
+    if (databaseOk)
+    {
+        QSqlQuery query;
+        query.exec("SELECT * FROM opendetector");
+        while (query.next()) {
+
+            QString queryString = query.value(3).toString() + ": Device "
+                    + query.value(1).toString() + " "
+                    + (query.value(2).toString() == "0" ? "closed" : "opened");
+            debugLineWidget->addText(queryString);
+
+        }
+    }
+    else
+    {
+        debugLineWidget->addText("Database error");
+    }
+}
+
 void MainWindow::onWidgetList()
 {
     ui->pageStack->setCurrentIndex(0);
@@ -90,35 +119,6 @@ void MainWindow::onSettings()
 void MainWindow::onProgramming()
 {
     ui->pageStack->setCurrentIndex(2);
-    QSqlDatabase db = QSqlDatabase::addDatabase("QMYSQL");
-    db.setHostName(serverAddress);
-    db.setUserName(username);
-    db.setPassword(password);
-    db.setDatabaseName(databaseName);
-    bool databaseOk = db.open();
-
-    if (databaseOk)
-    {
-        QSqlQuery query;
-        query.exec("SELECT * FROM opendetector");
-        while (query.next()) {
-
-            QString queryString = query.value(3).toString() + ": Device "
-                    + query.value(1).toString() + " "
-                    + (query.value(2).toString() == "0" ? "closed" : "opened");
-            debugLineWidget->addText(queryString);
-
-        }       
-    }
-    else
-    {
-        debugLineWidget->addText("Database error");
-    }
-
-    db.close();
-
-
-
 }
 
 void MainWindow::onClose()

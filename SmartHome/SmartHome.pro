@@ -19,13 +19,15 @@ SOURCES += main.cpp\
     debuglinewidget.cpp \
     environmentalsensorwidget.cpp \
     linewidget.cpp \
-    opendetectorwidget.cpp
+    opendetectorwidget.cpp \
+    wifisocketwidget.cpp
 
 HEADERS  += mainwindow.h \
     debuglinewidget.h \
     environmentalsensorwidget.h \
     linewidget.h \
-    opendetectorwidget.h
+    opendetectorwidget.h \
+    wifisocketwidget.h
 
 FORMS    += mainwindow.ui
 

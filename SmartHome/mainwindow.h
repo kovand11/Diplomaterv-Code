@@ -8,6 +8,7 @@
 #include "debuglinewidget.h"
 #include "environmentalsensorwidget.h"
 #include "opendetectorwidget.h"
+#include "wifisocketwidget.h"
 
 #include <QtSql/QtSql>
 #include <QtSql/QSqlDatabase>
@@ -28,9 +29,13 @@ public:
 private:
     Ui::MainWindow *ui;
 
+    void connectToDatabase();
+
     DebugLineWidget *debugLineWidget;
     EnvironmentalSensorWidget *environmentalSensorWidget;
     OpenDetectorWidget * openDetectorWidget;
+    WifiSocketWidget *wifiSocketWidget;
+
 
 
     //settings
@@ -41,6 +46,8 @@ private:
     bool showDebugWidget;
     bool showOpenDetectorDBWidget;
     QString devices;
+
+    QSqlDatabase database;
 
 
 private slots:
