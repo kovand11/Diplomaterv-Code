@@ -37,7 +37,14 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
 
     qDebug() << "kutya";
 
-    openDetectorWidget = new OpenDetectorWidget("");
+    QStringList serverInfoList;
+    serverInfoList.append(serverAddress);
+    serverInfoList.append(username);
+    serverInfoList.append(password);
+    serverInfoList.append(databaseName);
+
+
+    openDetectorWidget = new OpenDetectorWidget(serverInfoList.join(' '));
     /*openDetectorWidget->processSingleEvent(1551,true,"1991.01.25 22:46");
     openDetectorWidget->processSingleEvent(1551,true,"1991.01.25 22:46");
     openDetectorWidget->processSingleEvent(1551,true,"1991.01.25 22:46");

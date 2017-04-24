@@ -16,7 +16,7 @@
 class OpenDetectorWidget : public QObject, public LineWidget
 {
 public:
-    OpenDetectorWidget(QString ip,QObject *parent = 0);
+    OpenDetectorWidget(QString address,QObject *parent = 0);
 
     void acquireData() override;
 

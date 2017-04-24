@@ -1,8 +1,8 @@
 #include "linewidget.h"
 
-LineWidget::LineWidget(QString deviceIp)
+LineWidget::LineWidget(QString deviceAddress)
 {
-    this->deviceIp = deviceIp;
+    this->deviceAddress = deviceAddress;
     timer = new QTimer();
 }
 

@@ -5,7 +5,7 @@
 class LineWidget
 {
 public:
-    LineWidget(QString deviceIp);
+    LineWidget(QString deviceAddress);
     QLayout *getLayout();
 
     virtual void acquireData() = 0;
@@ -16,7 +16,7 @@ public:
     ~LineWidget();
 
 protected:
-    QString deviceIp;
+    QString deviceAddress;
     QLayout *layout;
     QTimer *timer;
 

@@ -1,6 +1,6 @@
 #include "opendetectorwidget.h"
 
-OpenDetectorWidget::OpenDetectorWidget(QString ip,QObject *parent) : QObject(parent), LineWidget(ip)
+OpenDetectorWidget::OpenDetectorWidget(QString address,QObject *parent) : QObject(parent), LineWidget(address)
 {
     createWidget();
     processDatabase();
@@ -22,18 +22,20 @@ void OpenDetectorWidget::createWidget()
 
 void OpenDetectorWidget::updateWidget()
 {
-
+    //no further widget update needed with this widget
 }
 
 void OpenDetectorWidget::processDatabase()
 {
     qDebug() << "Database process started";
 
+    QStringList serverInfoList = deviceAddress.split(' ');
+
     QSqlDatabase database = QSqlDatabase::addDatabase("QMYSQL");
-    database.setHostName("localhost");
-    database.setUserName("root");
-    database.setPassword("abcd1234");
-    database.setDatabaseName("smarthome");
+    database.setHostName(serverInfoList.at(0));
+    database.setUserName(serverInfoList.at(1));
+    database.setPassword(serverInfoList.at(2));
+    database.setDatabaseName(serverInfoList.at(3));
     bool databaseOk = database.open();
 
     if (!databaseOk)
