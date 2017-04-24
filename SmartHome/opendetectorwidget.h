@@ -5,7 +5,12 @@
 #include <QListWidget>
 #include <QList>
 #include <QLabel>
+#include <QDebug>
 #include "linewidget.h"
+
+#include <QtSql/QtSql>
+#include <QtSql/QSqlDatabase>
+#include <QtSql/QSqlQuery>
 
 
 class OpenDetectorWidget : public QObject, public LineWidget

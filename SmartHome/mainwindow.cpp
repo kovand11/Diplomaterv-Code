@@ -89,7 +89,7 @@ void MainWindow::connectToDatabase()
 
     if (databaseOk)
     {
-        QSqlQuery query;
+        /*QSqlQuery query;
         query.exec("SELECT * FROM opendetector");
         while (query.next()) {
 
@@ -98,7 +98,7 @@ void MainWindow::connectToDatabase()
                     + (query.value(2).toString() == "0" ? "closed" : "opened");
             debugLineWidget->addText(queryString);
 
-        }
+        }*/
     }
     else
     {
