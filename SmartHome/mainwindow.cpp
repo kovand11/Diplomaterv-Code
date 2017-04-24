@@ -35,15 +35,17 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
     environmentalSensorWidget->setData(23.5f,1025.1f,25.5f,32.4f,25,67,44,115);
     //environmentalSensorWidget->startPolling(100);
 
+    qDebug() << "kutya";
+
     openDetectorWidget = new OpenDetectorWidget("");
-    openDetectorWidget->processSingleEvent(1551,true,"1991.01.25 22:46");
+    /*openDetectorWidget->processSingleEvent(1551,true,"1991.01.25 22:46");
     openDetectorWidget->processSingleEvent(1551,true,"1991.01.25 22:46");
     openDetectorWidget->processSingleEvent(1551,true,"1991.01.25 22:46");
     openDetectorWidget->processSingleEvent(1551,true,"1991.01.25 22:46");
     openDetectorWidget->processSingleEvent(1551,true,"1991.01.25 22:46");
     openDetectorWidget->createDoor(25411,true);
     openDetectorWidget->createDoor(25451,false);
-    openDetectorWidget->createDoor(6585,true);
+    openDetectorWidget->createDoor(6585,true);*/
 
     wifiSocketWidget = new WifiSocketWidget("");
 
@@ -59,7 +61,6 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
 
     debugLineWidget->addText("Application started");
 
-    connectToDatabase();
 }
 
 MainWindow::~MainWindow()
@@ -75,36 +76,7 @@ MainWindow::~MainWindow()
     delete ui;
 }
 
-void MainWindow::connectToDatabase()
-{
-    if (database.isOpen())
-        database.close();
 
-    database = QSqlDatabase::addDatabase("QMYSQL");
-    database.setHostName(serverAddress);
-    database.setUserName(username);
-    database.setPassword(password);
-    database.setDatabaseName(databaseName);
-    bool databaseOk = database.open();
-
-    if (databaseOk)
-    {
-        /*QSqlQuery query;
-        query.exec("SELECT * FROM opendetector");
-        while (query.next()) {
-
-            QString queryString = query.value(3).toString() + ": Device "
-                    + query.value(1).toString() + " "
-                    + (query.value(2).toString() == "0" ? "closed" : "opened");
-            debugLineWidget->addText(queryString);
-
-        }*/
-    }
-    else
-    {
-        debugLineWidget->addText("Database error");
-    }
-}
 
 void MainWindow::onWidgetList()
 {

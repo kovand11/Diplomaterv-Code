@@ -29,8 +29,6 @@ public:
 private:
     Ui::MainWindow *ui;
 
-    void connectToDatabase();
-
     DebugLineWidget *debugLineWidget;
     EnvironmentalSensorWidget *environmentalSensorWidget;
     OpenDetectorWidget * openDetectorWidget;

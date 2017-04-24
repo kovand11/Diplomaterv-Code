@@ -28,6 +28,17 @@ void OpenDetectorWidget::updateWidget()
 void OpenDetectorWidget::processDatabase()
 {
     qDebug() << "Database process started";
+
+    QSqlDatabase database = QSqlDatabase::addDatabase("QMYSQL");
+    database.setHostName("localhost");
+    database.setUserName("root");
+    database.setPassword("abcd1234");
+    database.setDatabaseName("smarthome");
+    bool databaseOk = database.open();
+
+    if (!databaseOk)
+        return;
+
     QSqlQuery query;
     query.exec("SELECT * FROM opendetector");
     while (query.next())
@@ -38,25 +49,27 @@ void OpenDetectorWidget::processDatabase()
         eventList->addItem(date + ": " + doorId + " " + (isOpen ? "opened" : "closed"));
     }
 
-    query.exec("SELECT DISTINCT(ID) FROM opendetector");
+    QList<int> doors;
+
+    query.exec("SELECT DISTINCT(DEVICE) FROM opendetector");
     while (query.next())
     {
-        QString idStr = query.value(1).toString();
+        QString idStr = query.value(0).toString();
         int id = idStr.toInt();
         qDebug() << "Distinct door " + QString::number(id);
-        doorIds.append(id);
+        doors.append(id);
     }
 
-    for (int i = 0; i < doorIds.size(); i++)
+    for (int i = 0; i < doors.size(); i++)
     {
-        QString idCond = "ID="+QString::number(doorIds.at(i))+ " ";
-        query.exec("SELECT OPEN FROM opendetector WHERE " + idCond + "AND (SELECT MAX(TIMESTAMP) FROM opendetector WHERE "+ idCond +")");
+        QString idCond = "DEVICE="+QString::number(doors.at(i))+ " ";
+        query.exec("SELECT OPEN FROM opendetector WHERE " + idCond + "AND TIMESTAMP=(SELECT MAX(TIMESTAMP) FROM opendetector WHERE "+ idCond +")");
 
         if (query.next())
         {
             bool isOpen= query.value(0).toString() != "0";
-            qDebug() << "Created door door " + QString::number(doorIds.at(i)) + " " + (isOpen ? "opened" : "closed");
-            createDoor(doorIds.at(i),isOpen);
+            qDebug() << "Created door door " + QString::number(doors.at(i)) + " " + (isOpen ? "opened" : "closed");
+            createDoor(doors.at(i),isOpen);
         }
     }
 
