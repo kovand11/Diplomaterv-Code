@@ -66,6 +66,8 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
     ui->widgetLayout->addSpacerItem(new QSpacerItem(20,20));
     ui->widgetLayout->addLayout(wifiSocketWidget->getLayout());
 
+    openDetectorWidget->startPolling(1000);
+
     debugLineWidget->addText("Application started");
 
 }

@@ -35,7 +35,7 @@ protected:
 
 
 
-    int eventCount;
+    int lastId;
 
     QListWidget *eventList;
     QList<QVBoxLayout*> doorLayouts;

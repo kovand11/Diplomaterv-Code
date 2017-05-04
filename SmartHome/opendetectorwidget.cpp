@@ -8,7 +8,38 @@ OpenDetectorWidget::OpenDetectorWidget(QString address,QObject *parent) : QObjec
 
 void OpenDetectorWidget::acquireData()
 {
-    //check if there is a new line and process if there is
+    qDebug() << "acquire";
+    QStringList serverInfoList = deviceAddress.split(' ');
+
+    QSqlDatabase database = QSqlDatabase::addDatabase("QMYSQL");
+    database.setHostName(serverInfoList.at(0));
+    database.setUserName(serverInfoList.at(1));
+    database.setPassword(serverInfoList.at(2));
+    database.setDatabaseName(serverInfoList.at(3));
+    bool databaseOk = database.open();
+
+    if (!databaseOk)
+        return;
+
+    QSqlQuery query;
+    query.exec("SELECT COUNT(ID) FROM opendetector");
+    if (query.next())
+    {
+        int id = query.value(0).toString().toInt();
+        if (id > lastId)
+        {
+            query.exec("SELECT * FROM opendetector");
+            while (query.next())
+            {
+                lastId = query.value(0).toString().toInt();
+                QString doorId = query.value(1).toString();
+                bool isOpen= query.value(2).toString() != "0";
+                QString date = query.value(3).toString();
+                processSingleEvent(doorId.toInt(),isOpen,date);
+            }
+        }
+    }
+    database.close();
 }
 
 void OpenDetectorWidget::createWidget()
@@ -45,6 +76,7 @@ void OpenDetectorWidget::processDatabase()
     query.exec("SELECT * FROM opendetector");
     while (query.next())
     {
+        lastId = query.value(0).toString().toInt();
         QString doorId = query.value(1).toString();
         bool isOpen= query.value(2).toString() != "0";
         QString date = query.value(3).toString();
@@ -74,6 +106,8 @@ void OpenDetectorWidget::processDatabase()
             createDoor(doors.at(i),isOpen);
         }
     }
+
+    database.close();
 
 
 
@@ -117,6 +151,7 @@ void OpenDetectorWidget::createDoor(int id, bool isOpen)
 
 void OpenDetectorWidget::processSingleEvent(int doorId, int isOpen, QString date)
 {
+    qDebug() << doorId << isOpen << date;
     eventList->addItem(date + ": " + QString::number(doorId) + " " + (isOpen ? "opened" : "closed"));
     eventList->scrollToBottom();
 
