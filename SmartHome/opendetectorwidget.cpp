@@ -41,6 +41,7 @@ void OpenDetectorWidget::acquireData()
         }
     }
     database.close();
+    QSqlDatabase::removeDatabase("QMYSQL");
 }
 
 void OpenDetectorWidget::createWidget()
@@ -110,9 +111,7 @@ void OpenDetectorWidget::processDatabase()
     }
 
     database.close();
-
-
-
+    QSqlDatabase::removeDatabase("QMYSQL");
 }
 
 void OpenDetectorWidget::setDoorState(int id, bool isOpen)
@@ -156,18 +155,21 @@ void OpenDetectorWidget::processSingleEvent(int doorId, int isOpen, QString date
     qDebug() << doorId << isOpen << date;
     eventList->addItem(date + ": " + QString::number(doorId) + " " + (isOpen ? "opened" : "closed"));
     eventList->scrollToBottom();
-    for (int i=0; i<doorIds.size(); i++)
+    if (doorIds.contains(doorId))
     {
-        if (doorId == doorIds.at(i))
+        for (int i=0; i<doorIds.size(); i++)
         {
-            if (isOpen)
-                doorIcons.at(i)->setPixmap(QPixmap(":/icons/unlocked.png").scaled(32,32));
-            else
-                doorIcons.at(i)->setPixmap(QPixmap(":/icons/locked.png").scaled(32,32));
-
+            if (doorId == doorIds.at(i))
+            {
+                if (isOpen)
+                    doorIcons.at(i)->setPixmap(QPixmap(":/icons/unlocked.png").scaled(32,32));
+                else
+                    doorIcons.at(i)->setPixmap(QPixmap(":/icons/locked.png").scaled(32,32));
+            }
         }
-
     }
-
-
+    else
+    {
+        createDoor(doorId,isOpen);
+    }
 }
