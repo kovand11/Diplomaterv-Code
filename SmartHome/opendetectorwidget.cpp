@@ -22,10 +22,11 @@ void OpenDetectorWidget::acquireData()
         return;
 
     QSqlQuery query;
-    query.exec("SELECT COUNT(ID) FROM opendetector");
+    query.exec("SELECT MAX(ID) FROM opendetector");
     if (query.next())
     {
         int id = query.value(0).toString().toInt();
+        qDebug() << "id" << id << lastId;
         if (id > lastId)
         {
             query.exec("SELECT * FROM opendetector");
@@ -77,6 +78,7 @@ void OpenDetectorWidget::processDatabase()
     while (query.next())
     {
         lastId = query.value(0).toString().toInt();
+        qDebug() << "pr id" << lastId;
         QString doorId = query.value(1).toString();
         bool isOpen= query.value(2).toString() != "0";
         QString date = query.value(3).toString();
@@ -154,6 +156,18 @@ void OpenDetectorWidget::processSingleEvent(int doorId, int isOpen, QString date
     qDebug() << doorId << isOpen << date;
     eventList->addItem(date + ": " + QString::number(doorId) + " " + (isOpen ? "opened" : "closed"));
     eventList->scrollToBottom();
+    for (int i=0; i<doorIds.size(); i++)
+    {
+        if (doorId == doorIds.at(i))
+        {
+            if (isOpen)
+                doorIcons.at(i)->setPixmap(QPixmap(":/icons/unlocked.png").scaled(32,32));
+            else
+                doorIcons.at(i)->setPixmap(QPixmap(":/icons/locked.png").scaled(32,32));
+
+        }
+
+    }
 
 
 }
