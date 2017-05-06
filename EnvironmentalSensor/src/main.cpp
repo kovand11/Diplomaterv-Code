@@ -124,7 +124,6 @@ const char* img_rgb = "data:image/png;base64,"
 #define PIN_SDA     2
 #define PIN_SCL     14
 
-
 #define EEPROM_MAXLEN 64
 #define EEPROM_USER 0
 #define EEPROM_PASSWORD 64
@@ -135,6 +134,12 @@ ESP8266WebServer server(80);
 MDNSResponder mdns;
 BME280I2C bme;
 VEML6040 RGBWSensor;
+
+//Runtime state
+bool ledBlue = false;
+bool ledAmber = false;
+bool hasBME280 = false;
+bool hasVEML6040 = false;
 
 
 void writeToEEPROM(int address,String value)
@@ -204,40 +209,68 @@ String createMainPage(float temperature,float pressure, float humidity,
   src += "<br />";
   src += "<a href=\"/settings\">Settings</a> ";
   src += "<a href=\"/status\">Status</a> ";
-  src += "<a href=\"/developer\">Developer</a> ";
-  src += "<a href=\"/debug\">Debug</a> ";
+  src += "<a href=\"/json\">JSON</a> ";
   src +="</body></html>";
   return src;
 }
 
-
 /**
  * @brief Displays the measured data in JSON format.  Displayed: Temp., Press., Hum., RGBW, UVAB
  */
-String createJSONPage(float temp,float pres, float hum,float a,float r,float g,float b, float w,float uva,float uvb)
+String createJSONPage(String mac,uint32_t id,float temp,float pres, float hum,float a,float r,float g,float b, float w)
 {
   String src = "";
+
   src += "{\n";
   src += "  \"Type\": \"Environmental Sensor\",\n";
-  src += "  \"MAC\": \"" + String(WiFi.macAddress()) + "\",\n";
-  src += "  \"Air\": {";
-  src += "    \"temp\": \"" + String(temp) + "\",\n";
-  src += "    \"pres\": \"" + String(pres) + "\",\n";
-  src += "    \"hum\": \"" + String(hum) + "\",\n";
-  src += "  },\n";
-  src += "  \"RGB\": {";
-  src += "    \"A\": \"" + String(a) + "\",\n";
-  src += "    \"R\": \"" + String(r) + "\",\n";
-  src += "    \"G\": \"" + String(g) + "\",\n";
-  src += "    \"B\": \"" + String(b) + "\",\n";
-  src += "    \"W\": \"" + String(w) + "\",\n";
-  src += "  },";
-  src += "  \"UV\": {";
-  src += "    \"A\": \"" + String(uva) + "\",\n";
-  src += "    \"B\": \"" + String(uvb) + "\",\n";
-  src += "  }\n";
+  src += "  \"MAC\": \"" + mac + "\",\n";
+  src += "  \"ID\": \"" + String(id) + "\",\n";
+  src += "  \"Temp\": \"" + String(temp) + "\",\n";
+  src += "  \"Pres\": \"" + String(pres) + "\",\n";
+  src += "  \"Hum\": \"" + String(hum) + "\",\n";
+  src += "  \"Amb\": \"" + String(a) + "\",\n";
+  src += "  \"R\": \"" + String(r) + "\",\n";
+  src += "  \"G\": \"" + String(g) + "\",\n";
+  src += "  \"B\": \"" + String(b) + "\",\n";
+  src += "  \"W\": \"" + String(w) + "\",\n";
   src += "}\n";
 
+  return src;
+}
+
+
+String createStatusPage(String mac,uint32_t id,String comp_date,String comp_time,String freeHeap) //BME280 and VEML6040 from globals
+{
+  String src = "";
+  src += "<html><body><table>";
+  src += ( "<tr><td>MAC address</td><td>" + mac + "</td></tr>");
+  src += ( "<tr><td>Chip ID</td><td>" + String(id) + "</td></tr>");
+  src += ( "<tr><td>Compilation date</td><td>" + comp_date + "</td></tr>");
+  src += ( "<tr><td>Compilation time</td><td>" + comp_time + "</td></tr>");
+  src += ( "<tr><td>BME280 detected</td><td>" + String((hasBME280?"Yes":"No")) + "</td></tr>");
+  src += ( "<tr><td>VEML6040 detected</td><td>" + String((hasVEML6040?"Yes":"No")) + "</td></tr>");
+  src += ( "<tr><td>Free heap memory</td><td>" + freeHeap + "</td></tr>");
+  src += "</table></body></html>";
+  return src;
+}
+
+String createSettingsPage(String user, String password)
+{
+  String src = "";
+  src += "<!DOCTYPE html>\n";
+  src += "<html>\n";
+  src += "<body>\n";
+  src += "<form action=\"/process-settings\">\n";
+  src += "SSID:<br>\n";
+  src += "<input type=\"text\" name=\"user\" value=\"" + user + "\">\n";
+  src += "<br>\n";
+  src += "Password:<br>\n";
+  src += "<input type=\"text\" name=\"password\" value=\"" + password + "\">\n";
+  src += "<br><br>\n";
+  src += "<input type=\"submit\" value=\"Submit\">\n";
+  src += "</form>\n";
+  src += "</body>\n";
+  src += "</html>\n";
   return src;
 }
 
@@ -245,7 +278,12 @@ String createJSONPage(float temp,float pres, float hum,float a,float r,float g,f
 
 void serverSetup()
 {
-  WiFi.begin("kovand-NET", "ingyennet1111");
+  EEPROM.begin(192);
+  String user = readFromEEPROM(EEPROM_USER,EEPROM_MAXLEN);
+  String password = readFromEEPROM(EEPROM_PASSWORD,EEPROM_MAXLEN);
+  EEPROM.end();
+
+  WiFi.begin(user.c_str(), password.c_str());
   delay(1000);
   Serial.print("Waiting for connection");
   while (WiFi.status() != WL_CONNECTED)
@@ -264,6 +302,7 @@ void serverSetup()
     Serial.println("MDNS responder started");
   }
 
+
   server.on("/", []() {
     //read BME280 data
     float temperature, humidity, presssure;
@@ -277,38 +316,69 @@ void serverSetup()
     uint16_t b = RGBWSensor.getBlue();
     uint16_t w = RGBWSensor.getWhite();
 
-
     server.send(200, "text/html", createMainPage(temperature,presssure,humidity,amb,r,g,b,w));
   });
 
 
   server.on("/json", []() {
+    //read BME280 data
+    float temperature, humidity, presssure;
+    bme.read(presssure,temperature,humidity,true,B001); //metric and bar
+    temperature -= 3.5f; //compensation
+
     float amb = RGBWSensor.getAmbientLight();
     uint16_t r = RGBWSensor.getRed();
     uint16_t g = RGBWSensor.getGreen();
     uint16_t b = RGBWSensor.getBlue();
     uint16_t w = RGBWSensor.getWhite();
-    server.send(200, "text/html", createJSONPage(1.1f, 2.2f, 3.3f, amb, r, g, b, w, 8.8f, 9.9f));
+
+    server.send(200, "text/json", createJSONPage(WiFi.macAddress(),ESP.getChipId(),temperature, presssure, humidity, amb, r, g, b, w));
   });
 
-  /*server.on("/status", []() {
-    char * keys[] = {"Chip ID","Heap size","Compilation date","Compilation time"};
-    String values[4];
-    values[0] = String(ESP.getChipId());
-    values[1] = String(ESP.getFreeHeap());
-    values[2] = String(__DATE__ );
-    values[3] = String(__TIME__);
+  server.on("/status", []() {
+    server.send(200, "text/html", createStatusPage(WiFi.macAddress(), ESP.getChipId(), String(__DATE__), String(__TIME__), String(ESP.getFreeHeap())));
+  });
 
-    server.send(200, "text/html", createStatusPage(keys, values, 4));
-  });*/
 
   server.on("/developer", []() {
-    server.send(200, "text/html", "Developer options will be implemented later. First leds");
+
+    String blueLedArg = server.arg("blueled");
+    String amberLedArg = server.arg("amberled");
+
+    if (blueLedArg == "0")
+      ledBlue = false;
+    else if (blueLedArg == "1")
+      ledBlue = true;
+    else if (blueLedArg = "x")
+      ledBlue = !ledBlue;
+
+    if (amberLedArg == "0")
+      ledAmber = false;
+    else if (amberLedArg == "1")
+      ledAmber = true;
+    else if (amberLedArg = "x")
+      ledAmber = !ledAmber;
+
+    if (ledBlue)
+      digitalWrite(LED_BLUE, HIGH);
+    else
+      digitalWrite(LED_BLUE, LOW);
+
+    if (ledAmber)
+      digitalWrite(LED_AMBER, HIGH);
+    else
+      digitalWrite(LED_AMBER, LOW);
+
+    server.send(200, "text/html", "Done");
   });
 
-
   server.on("/settings", []() {
-    server.send(200, "text/html", "Settings will be implemented later. Content: ssid, pass,page autorefresh");
+    EEPROM.begin(192);
+    String user = readFromEEPROM(EEPROM_USER,EEPROM_MAXLEN);
+    String password = readFromEEPROM(EEPROM_PASSWORD,EEPROM_MAXLEN);
+    EEPROM.end();
+
+    server.send(200, "text/html", createSettingsPage(user, password));
   });
 
   server.on("/process-settings", []() {
@@ -319,13 +389,8 @@ void serverSetup()
     writeToEEPROM(EEPROM_USER, user);
     writeToEEPROM(EEPROM_PASSWORD, password);
     EEPROM.end();
-    server.send(200, "text/html", "Settings saved");
+    server.send(200, "text/html", "Saved");
   });
-
-  //Temporary page to check stuff
-  /*server.on("/debug", []() {
-    server.send(200, "text/html", String("<html> <h2>") + I2CscanReport() + String("</h2></html>"));
-  });*/
 
   server.begin();
 }
@@ -346,16 +411,18 @@ void setup()
 
   Wire.begin(PIN_SDA,PIN_SCL);
 
-  if(!bme.begin()) {
+  if(!bme.begin())
     Serial.println("ERROR: couldn't detect the BME280 sensor");
-  }
+  else
+    hasBME280=true;
 
 
 
 
-  if(!RGBWSensor.begin()) {
+  if(!RGBWSensor.begin())
     Serial.println("ERROR: couldn't detect the VEML6040 sensor");
-  }
+  else
+    hasVEML6040 = true;
 
   RGBWSensor.setConfiguration(VEML6040_IT_640MS + VEML6040_AF_AUTO + VEML6040_SD_ENABLE);
 
