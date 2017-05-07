@@ -232,7 +232,7 @@ String createJSONPage(String mac,uint32_t id,float temp,float pres, float hum,fl
   src += "  \"R\": \"" + String(r) + "\",\n";
   src += "  \"G\": \"" + String(g) + "\",\n";
   src += "  \"B\": \"" + String(b) + "\",\n";
-  src += "  \"W\": \"" + String(w) + "\",\n";
+  src += "  \"W\": \"" + String(w) + "\"\n";
   src += "}\n";
 
   return src;
@@ -349,14 +349,14 @@ void serverSetup()
       ledBlue = false;
     else if (blueLedArg == "1")
       ledBlue = true;
-    else if (blueLedArg = "x")
+    else if (blueLedArg == "x")
       ledBlue = !ledBlue;
 
     if (amberLedArg == "0")
       ledAmber = false;
     else if (amberLedArg == "1")
       ledAmber = true;
-    else if (amberLedArg = "x")
+    else if (amberLedArg == "x")
       ledAmber = !ledAmber;
 
     if (ledBlue)
