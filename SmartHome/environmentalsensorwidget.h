@@ -6,6 +6,12 @@
 #include <QLabel>
 #include <QCheckBox>
 #include <QPushButton>
+#include <QUrl>
+#include <QtNetwork/QNetworkAccessManager>
+#include <QtNetwork/QNetworkRequest>
+#include <QtNetwork/QNetworkReply>
+#include <QJsonDocument>
+#include <QJsonObject>
 
 #include "linewidget.h"
 
@@ -30,6 +36,8 @@ private:
     void createWidget() override;
     void updateWidget() override;
 
+    void setDeveloperParam(QString key,QString value);
+
     QVBoxLayout *layout;
 
     QLabel *temperatureLabel;
@@ -42,6 +50,9 @@ private:
     QLabel *blueCounterLabel;
     QLabel *whiteCounterLabel;
 
+    QCheckBox *blueCheckbox;
+    QCheckBox *amberCheckbox;
+
 
     float temperature;
     float pressure;
@@ -52,6 +63,9 @@ private:
     int greenCounter;
     int blueCounter;
     int whiteCounter;
+
+    QNetworkAccessManager networkManager;
+    QNetworkReply *networkReply;
 
 
 };

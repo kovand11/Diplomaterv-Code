@@ -8,7 +8,6 @@ OpenDetectorWidget::OpenDetectorWidget(QString address,QObject *parent) : QObjec
 
 void OpenDetectorWidget::acquireData()
 {
-    qDebug() << "acquire";
     QStringList serverInfoList = deviceAddress.split(' ');
 
     QSqlDatabase database = QSqlDatabase::addDatabase("QMYSQL");
@@ -26,7 +25,6 @@ void OpenDetectorWidget::acquireData()
     if (query.next())
     {
         int id = query.value(0).toString().toInt();
-        qDebug() << "id" << id << lastId;
         if (id > lastId)
         {
             query.exec("SELECT * FROM opendetector");
@@ -79,7 +77,6 @@ void OpenDetectorWidget::processDatabase()
     while (query.next())
     {
         lastId = query.value(0).toString().toInt();
-        qDebug() << "pr id" << lastId;
         QString doorId = query.value(1).toString();
         bool isOpen= query.value(2).toString() != "0";
         QString date = query.value(3).toString();
@@ -152,7 +149,6 @@ void OpenDetectorWidget::createDoor(int id, bool isOpen)
 
 void OpenDetectorWidget::processSingleEvent(int doorId, int isOpen, QString date)
 {
-    qDebug() << doorId << isOpen << date;
     eventList->addItem(date + ": " + QString::number(doorId) + " " + (isOpen ? "opened" : "closed"));
     eventList->scrollToBottom();
     if (doorIds.contains(doorId))

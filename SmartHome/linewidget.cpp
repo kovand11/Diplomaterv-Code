@@ -4,6 +4,7 @@ LineWidget::LineWidget(QString deviceAddress)
 {
     this->deviceAddress = deviceAddress;
     timer = new QTimer();
+    defaultFont = new QFont("Roboto",16);
 }
 
 QLayout *LineWidget::getLayout()

@@ -30,7 +30,31 @@ void EnvironmentalSensorWidget::setData(float temperature, float pressure, float
 
 void EnvironmentalSensorWidget::acquireData()
 {
-    pressure += 1.0f;
+    QUrl url;
+    url.setScheme("http");
+    url.setHost("192.168.0.17");
+    url.setPath("/json");
+    QNetworkRequest request(url);
+    networkReply = networkManager.get(request);
+    connect(networkReply,&QNetworkReply::finished,[&]()
+    {
+        QByteArray data = networkReply->readAll();
+        qDebug()<< "Raw" << data;
+        QJsonDocument document = QJsonDocument::fromJson(data);
+        QJsonObject object = document.object();
+        temperature = object.value("Temp").toString().toFloat();
+        pressure = object.value("Pres").toString().toFloat();
+        humidity = object.value("Hum").toString().toFloat();
+        ambientLight = object.value("Amb").toString().toFloat();
+        redCounter = object.value("R").toString().toFloat();
+        greenCounter = object.value("G").toString().toFloat();
+        blueCounter = object.value("B").toString().toFloat();
+        whiteCounter = object.value("W").toString().toFloat();
+    });
+
+
+
+
 }
 
 void EnvironmentalSensorWidget::createWidget()
@@ -43,21 +67,29 @@ void EnvironmentalSensorWidget::createWidget()
     //Temp, press, hum layout buildup
 
     QLabel *tempIcon = new QLabel();
+    tempIcon->setMaximumWidth(64);
     tempIcon->setPixmap(QPixmap(":/icons/temp.png"));
     tempPressHumLayout->addWidget(tempIcon);
-    temperatureLabel = new QLabel("28 C");
+    temperatureLabel = new QLabel("-");
+    temperatureLabel->setFont(*defaultFont);
     tempPressHumLayout->addWidget(temperatureLabel);
 
+
     QLabel *pressIcon = new QLabel();
+    pressIcon->setMaximumWidth(64);
     pressIcon->setPixmap(QPixmap(":/icons/press.png"));
     tempPressHumLayout->addWidget(pressIcon);
-    pressureLabel = new QLabel("1025 hPa");
+    pressureLabel = new QLabel("-");
+    pressureLabel->setFont(*defaultFont);
     tempPressHumLayout->addWidget(pressureLabel);
 
+
     QLabel *humIcon = new QLabel();
+    humIcon->setMaximumWidth(64);
     humIcon->setPixmap(QPixmap(":/icons/hum.png"));
     tempPressHumLayout->addWidget(humIcon);
-    humidityLabel = new QLabel("28.5%");
+    humidityLabel = new QLabel("-");
+    humidityLabel->setFont(*defaultFont);
     tempPressHumLayout->addWidget(humidityLabel);
 
 
@@ -84,11 +116,18 @@ void EnvironmentalSensorWidget::createWidget()
 
     lightAndLedLayout->addSpacing(20);
 
-    lightAndLedLayout->addWidget(new QCheckBox("Blue"));
-    lightAndLedLayout->addWidget(new QCheckBox("Amber"));
-    QPushButton * refreshButton = new QPushButton("Refresh");
-    connect(refreshButton,&QPushButton::clicked,[&](){ this->stopPolling(); });
-    lightAndLedLayout->addWidget(refreshButton);
+    blueCheckbox = new QCheckBox("Blue");
+    connect(blueCheckbox,&QCheckBox::stateChanged,[&](int ch){
+        setDeveloperParam("blueled",( ch==Qt::Checked ? "1" : "0" ));
+    });
+
+    amberCheckbox = new QCheckBox("Amber");
+    connect(amberCheckbox,&QCheckBox::stateChanged,[&](int ch){
+        setDeveloperParam("amberled",( ch==Qt::Checked ? "1" : "0" ));
+    });
+
+    lightAndLedLayout->addWidget(blueCheckbox);
+    lightAndLedLayout->addWidget(amberCheckbox);
 
 
     layout->addLayout(tempPressHumLayout);
@@ -106,4 +145,16 @@ void EnvironmentalSensorWidget::updateWidget()
     greenCounterLabel->setText("G = " + QString::number(greenCounter));
     blueCounterLabel->setText("B = " + QString::number(blueCounter));
     whiteCounterLabel->setText("W = " + QString::number(whiteCounter));
+}
+
+void EnvironmentalSensorWidget::setDeveloperParam(QString key, QString value)
+{
+    QUrl url;
+    url.setScheme("http");
+    url.setHost("192.168.0.17");
+    url.setPath("/developer");
+    url.setQuery(key + "=" + value);
+    qDebug() << "url" << url;
+    QNetworkRequest request(url);
+    networkManager.get(request);
 }

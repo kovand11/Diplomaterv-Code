@@ -70,6 +70,8 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
 
     debugLineWidget->addText("Application started");
 
+    environmentalSensorWidget->startPolling(1000);
+
 }
 
 MainWindow::~MainWindow()

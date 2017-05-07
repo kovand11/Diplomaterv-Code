@@ -2,6 +2,7 @@
 #define LINEWIDGET_H
 #include<QLayout>
 #include<QTimer>
+#include<QFont>
 class LineWidget
 {
 public:
@@ -11,6 +12,8 @@ public:
     virtual void acquireData() = 0;
     void startPolling(int ms);
     void stopPolling();
+
+    QFont *defaultFont;
 
 
     ~LineWidget();
