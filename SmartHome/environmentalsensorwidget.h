@@ -1,6 +1,8 @@
 #ifndef ENVIRONMENTALSENSORWIDGET_H
 #define ENVIRONMENTALSENSORWIDGET_H
 
+#include <functional>
+
 #include <QObject>
 #include <QLayout>
 #include <QLabel>
@@ -27,6 +29,8 @@ public:
                  int redCounter, int greenCounter, int blueCounter, int whiteCounter);
 
     void acquireData() override;
+
+    void setStorageCallback(std::function< void(QString,QString,QString,QString,QString,QString,QString,QString,QString) > callback);
 
 signals:
 
@@ -63,6 +67,8 @@ private:
     int greenCounter;
     int blueCounter;
     int whiteCounter;
+
+    std::function< void(QString,QString,QString,QString,QString,QString,QString,QString,QString) > storageCallback; //id, temp, press, hum, amb, r, g, b, w (+implicit date)
 
     QNetworkAccessManager networkManager;
     QNetworkReply *networkReply;

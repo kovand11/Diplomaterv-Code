@@ -38,7 +38,7 @@ void OpenDetectorWidget::acquireData()
             }
         }
     }
-    database.close();
+    //database.close();
     QSqlDatabase::removeDatabase("QMYSQL");
 }
 

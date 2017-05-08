@@ -4,6 +4,11 @@
 #include "linewidget.h"
 #include <QToolButton>
 #include <QLabel>
+#include <QUrl>
+#include <QtNetwork/QNetworkAccessManager>
+#include <QtNetwork/QNetworkRequest>
+#include <QtNetwork/QNetworkReply>
+
 
 
 class WifiSocketWidget : public QObject, public LineWidget
@@ -19,6 +24,12 @@ public:
 
     bool isSocketConnected;
     float power;
+
+private:
+    void setControlParam(QString key,QString value);
+
+    QNetworkAccessManager networkManager;
+    QNetworkReply *networkReply;
 };
 
 #endif // WIFISOCKETWIDGET_H

@@ -70,7 +70,12 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
 
     debugLineWidget->addText("Application started");
 
-    environmentalSensorWidget->startPolling(1000);
+    environmentalSensorWidget->startPolling(2000);
+
+
+    environmentalSensorWidget->setStorageCallback([&](QString a, QString b, QString c, QString d, QString e, QString f, QString g, QString h, QString i){
+        qDebug()<< "CB" << a << b << c << d << e << f << g << h << i;
+    });
 
 }
 

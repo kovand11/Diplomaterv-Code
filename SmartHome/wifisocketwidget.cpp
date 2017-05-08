@@ -23,19 +23,39 @@ void WifiSocketWidget::createWidget()
 
     connect(connectButton,&QToolButton::clicked,[&](){
         if (isSocketConnected)
+        {
             this->connectButton->setIcon(QIcon(":/icons/disconnected.png"));
+            setControlParam("relay","0");
+        }
         else
+        {
             this->connectButton->setIcon(QIcon(":/icons/connected.png"));
+            setControlParam("relay","1");
+        }
 
         isSocketConnected = !isSocketConnected;
     });
 
     layout->addWidget(connectButton);
     layout->addItem(new QSpacerItem(20,20));
-    layout->addWidget(new QLabel("Information about performance"));
+    QLabel *consumption = new QLabel("0.0 W");
+    consumption->setFont(*defaultFont);
+    layout->addWidget(consumption);
+
 }
 
 void WifiSocketWidget::updateWidget()
 {
 
+}
+
+void WifiSocketWidget::setControlParam(QString key,QString value)
+{
+    QUrl url;
+    url.setScheme("http");
+    url.setHost("192.168.0.17");
+    url.setPath("/control");
+    url.setQuery(key + "=" + value);
+    QNetworkRequest request(url);
+    networkManager.get(request);
 }

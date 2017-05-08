@@ -50,11 +50,31 @@ void EnvironmentalSensorWidget::acquireData()
         greenCounter = object.value("G").toString().toFloat();
         blueCounter = object.value("B").toString().toFloat();
         whiteCounter = object.value("W").toString().toFloat();
+
+
+        if (storageCallback)
+        {
+            storageCallback(object.value("ID").toString(),
+                        object.value("Temp").toString(),
+                        object.value("Pres").toString(),
+                        object.value("Hum").toString(),
+                        object.value("Amb").toString(),
+                        object.value("R").toString(),
+                        object.value("G").toString(),
+                        object.value("B").toString(),
+                        object.value("W").toString()
+                        );
+        }
     });
 
 
 
 
+}
+
+void EnvironmentalSensorWidget::setStorageCallback(std::function<void (QString, QString, QString, QString, QString, QString, QString, QString, QString)> callback)
+{
+    storageCallback = callback;
 }
 
 void EnvironmentalSensorWidget::createWidget()
@@ -99,29 +119,31 @@ void EnvironmentalSensorWidget::createWidget()
     lightIcon->setPixmap(QPixmap(":/icons/light.png"));
     lightAndLedLayout->addWidget(lightIcon);
 
-    ambientLightLabel = new QLabel("25 lux");
+    ambientLightLabel = new QLabel("- lux");
+    ambientLightLabel->setFont(*defaultFont);
+
     lightAndLedLayout->addWidget(ambientLightLabel);
 
-    redCounterLabel = new QLabel("255");
+    redCounterLabel = new QLabel("-");
     lightAndLedLayout->addWidget(redCounterLabel);
 
-    greenCounterLabel = new QLabel("255");
+    greenCounterLabel = new QLabel("-");
     lightAndLedLayout->addWidget(greenCounterLabel);
 
-    blueCounterLabel = new QLabel("255");
+    blueCounterLabel = new QLabel("-");
     lightAndLedLayout->addWidget(blueCounterLabel);
 
-    whiteCounterLabel = new QLabel("1000");
+    whiteCounterLabel = new QLabel("-");
     lightAndLedLayout->addWidget(whiteCounterLabel);
 
     lightAndLedLayout->addSpacing(20);
 
-    blueCheckbox = new QCheckBox("Blue");
+    blueCheckbox = new QCheckBox("B");
     connect(blueCheckbox,&QCheckBox::stateChanged,[&](int ch){
         setDeveloperParam("blueled",( ch==Qt::Checked ? "1" : "0" ));
     });
 
-    amberCheckbox = new QCheckBox("Amber");
+    amberCheckbox = new QCheckBox("A");
     connect(amberCheckbox,&QCheckBox::stateChanged,[&](int ch){
         setDeveloperParam("amberled",( ch==Qt::Checked ? "1" : "0" ));
     });
