@@ -125,6 +125,11 @@ void OpenDetectorWidget::setDoorState(int id, bool isOpen)
 
 }
 
+void OpenDetectorWidget::onSet(QString key, QString value)
+{
+
+}
+
 void OpenDetectorWidget::createDoor(int id, bool isOpen)
 {
     QVBoxLayout *lay;

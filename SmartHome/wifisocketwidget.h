@@ -30,6 +30,9 @@ private:
 
     QNetworkAccessManager networkManager;
     QNetworkReply *networkReply;
+    void onSet(QString key,QString value) override;
+
+
 };
 
 #endif // WIFISOCKETWIDGET_H

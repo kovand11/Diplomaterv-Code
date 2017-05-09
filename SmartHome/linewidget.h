@@ -21,6 +21,9 @@ public:
 
     static QMap<QString,QString> aliases;
 
+signals:
+    void notify(QString,QString);
+
 protected:
     QString deviceAddress;
     QLayout *layout;
@@ -28,6 +31,7 @@ protected:
 
     virtual void createWidget() = 0;
     virtual void updateWidget() = 0;
+    virtual void onSet(QString key,QString value) = 0;
 
 
 };

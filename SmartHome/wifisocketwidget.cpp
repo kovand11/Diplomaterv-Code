@@ -59,3 +59,9 @@ void WifiSocketWidget::setControlParam(QString key,QString value)
     QNetworkRequest request(url);
     networkManager.get(request);
 }
+
+void WifiSocketWidget::onSet(QString key, QString value)
+{
+    if (key == "relay")
+        setControlParam("relay",value);
+}

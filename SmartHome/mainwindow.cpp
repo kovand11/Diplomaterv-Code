@@ -91,6 +91,9 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
     if (debugLineWidget != nullptr)
         debugLineWidget->addText("Application started correctly");
 
+    rule = new AutomationRule();
+    //connect(lineWidgets[1],&LineWidget::no)
+
 }
 
 MainWindow::~MainWindow()

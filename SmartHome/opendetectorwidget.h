@@ -32,6 +32,9 @@ protected:
 
     void setDoorState(int id, bool isOpen);
 
+    void onSet(QString key,QString value) override;
+
+
 
 
 

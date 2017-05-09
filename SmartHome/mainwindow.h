@@ -9,6 +9,7 @@
 #include "environmentalsensorwidget.h"
 #include "opendetectorwidget.h"
 #include "wifisocketwidget.h"
+#include "automationrule.h"
 
 #include <QtSql/QtSql>
 #include <QtSql/QSqlDatabase>
@@ -48,6 +49,8 @@ private:
 
     QList<LineWidget*> lineWidgets;
 
+    AutomationRule *rule;
+
 
 private slots:
     void onWidgetList();
@@ -58,6 +61,8 @@ private slots:
     void onSettingsReset();
     void onToggleFullscreen();
     void onKeyboard();
+
+
 
 
 };

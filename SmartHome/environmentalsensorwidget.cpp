@@ -70,6 +70,8 @@ void EnvironmentalSensorWidget::acquireData()
                         object.value("W").toString()
                         );
         }
+
+        //emit notify("amb",object.value("Amb").toString());
     });
 
 
@@ -192,4 +194,12 @@ void EnvironmentalSensorWidget::setDeveloperParam(QString key, QString value)
     qDebug() << "url" << url;
     QNetworkRequest request(url);
     networkManager.get(request);
+}
+
+void EnvironmentalSensorWidget::onSet(QString key, QString value)
+{
+    if (key == "blueled" || key == "amberled")
+    {
+        setDeveloperParam(key,value);
+    }
 }
