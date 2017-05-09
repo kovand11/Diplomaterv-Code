@@ -32,7 +32,7 @@ void EnvironmentalSensorWidget::acquireData()
 {
     QUrl url;
     url.setScheme("http");
-    url.setHost("192.168.0.17");
+    url.setHost(deviceAddress);
     url.setPath("/json");
     QNetworkRequest request(url);
     networkReply = networkManager.get(request);
@@ -42,6 +42,11 @@ void EnvironmentalSensorWidget::acquireData()
         qDebug()<< "Raw" << data;
         QJsonDocument document = QJsonDocument::fromJson(data);
         QJsonObject object = document.object();
+        QString id = object.value("ID").toString();
+        if (LineWidget::aliases.contains(id))
+            deviceDescription->setText("Environmental sensor: " + LineWidget::aliases[id]);
+        else
+            deviceDescription->setText("Environmental sensor: " + id);
         temperature = object.value("Temp").toString().toFloat();
         pressure = object.value("Pres").toString().toFloat();
         humidity = object.value("Hum").toString().toFloat();
@@ -81,8 +86,15 @@ void EnvironmentalSensorWidget::createWidget()
 {
     layout = new QVBoxLayout();
 
+    QHBoxLayout *headerLayout = new QHBoxLayout();
     QHBoxLayout *tempPressHumLayout = new QHBoxLayout();
     QHBoxLayout *lightAndLedLayout = new QHBoxLayout();
+
+
+    //Header buildup
+
+    deviceDescription = new QLabel("Environmental sensor: not connected");
+    headerLayout->addWidget(deviceDescription);
 
     //Temp, press, hum layout buildup
 
@@ -152,6 +164,7 @@ void EnvironmentalSensorWidget::createWidget()
     lightAndLedLayout->addWidget(amberCheckbox);
 
 
+    layout->addLayout(headerLayout);
     layout->addLayout(tempPressHumLayout);
     layout->addLayout(lightAndLedLayout);
 }
@@ -173,7 +186,7 @@ void EnvironmentalSensorWidget::setDeveloperParam(QString key, QString value)
 {
     QUrl url;
     url.setScheme("http");
-    url.setHost("192.168.0.17");
+    url.setHost(deviceAddress);
     url.setPath("/developer");
     url.setQuery(key + "=" + value);
     qDebug() << "url" << url;

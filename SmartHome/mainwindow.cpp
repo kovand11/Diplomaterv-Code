@@ -3,6 +3,7 @@
 
 MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWindow)
 {
+    debugLineWidget = nullptr;
     ui->setupUi(this);
     connect(ui->widgetListButton,&QToolButton::clicked,this,&MainWindow::onWidgetList);
     connect(ui->settingsButton,&QToolButton::clicked,this,&MainWindow::onSettings);
@@ -23,59 +24,72 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
     devices = settings.value("devices").toString();
     this->onSettingsReset();
 
+    if (showDebugWidget)
+    {
+        debugLineWidget = new DebugLineWidget();
+        ui->widgetLayout->addLayout(debugLineWidget->getLayout());
+        ui->widgetLayout->addSpacerItem(new QSpacerItem(20,20));
+        if (debugLineWidget != nullptr)
+            debugLineWidget->addText("Debug line widget added");
+    }
+
+    if (showOpenDetectorDBWidget)
+    {
+        QStringList serverInfoList;
+        serverInfoList.append(serverAddress);
+        serverInfoList.append(username);
+        serverInfoList.append(password);
+        serverInfoList.append(databaseName);
+        openDetectorWidget = new OpenDetectorWidget(serverInfoList.join(' '));
+        ui->widgetLayout->addLayout(openDetectorWidget->getLayout());
+        ui->widgetLayout->addSpacerItem(new QSpacerItem(20,20));
+        openDetectorWidget->startPolling(1000);
+        if (debugLineWidget != nullptr)
+            debugLineWidget->addText("Open detector widget added (" + serverAddress +" : "+ databaseName + ")");
+    }
+
+    QStringList devicesList = devices.split('\n');
+
+    for (QString s : devicesList)
+    {
+        if (debugLineWidget != nullptr)
+            debugLineWidget->addText(s);
+
+        if(s != "")
+        {
+            QStringList args = s.split(' ');
+            if (args[0] == "env")
+            {
+                EnvironmentalSensorWidget *environmentalSensorWidget = new EnvironmentalSensorWidget(args[1]);
+                lineWidgets.push_back(environmentalSensorWidget);
+                ui->widgetLayout->addLayout(environmentalSensorWidget->getLayout());
+                ui->widgetLayout->addSpacerItem(new QSpacerItem(20,20));
+                environmentalSensorWidget->setData(0,0,0,0,0,0,0,0);
+                environmentalSensorWidget->startPolling(2000);
+
+            }
+            else if (args[0] == "soc")
+            {
+                WifiSocketWidget *wifiSocketWidget = new WifiSocketWidget(args[1]);
+                lineWidgets.push_back(wifiSocketWidget);
+                ui->widgetLayout->addLayout(wifiSocketWidget->getLayout());
+                ui->widgetLayout->addSpacerItem(new QSpacerItem(20,20));
+            }
+            else if (args[0] == "alias")
+            {
+                QString key = args[1];
+                args.removeAt(1);
+                args.removeAt(0);
+                QString value = args.join(' ');
+                LineWidget::aliases.insert(key,value);
+            }
+        }
+
+    }
 
 
-
-
-
-
-
-    debugLineWidget = new DebugLineWidget();
-    environmentalSensorWidget = new EnvironmentalSensorWidget("");
-    environmentalSensorWidget->setData(23.5f,1025.1f,25.5f,32.4f,25,67,44,115);
-    //environmentalSensorWidget->startPolling(100);
-
-    qDebug() << "kutya";
-
-    QStringList serverInfoList;
-    serverInfoList.append(serverAddress);
-    serverInfoList.append(username);
-    serverInfoList.append(password);
-    serverInfoList.append(databaseName);
-
-
-    openDetectorWidget = new OpenDetectorWidget(serverInfoList.join(' '));
-    /*openDetectorWidget->processSingleEvent(1551,true,"1991.01.25 22:46");
-    openDetectorWidget->processSingleEvent(1551,true,"1991.01.25 22:46");
-    openDetectorWidget->processSingleEvent(1551,true,"1991.01.25 22:46");
-    openDetectorWidget->processSingleEvent(1551,true,"1991.01.25 22:46");
-    openDetectorWidget->processSingleEvent(1551,true,"1991.01.25 22:46");
-    openDetectorWidget->createDoor(25411,true);
-    openDetectorWidget->createDoor(25451,false);
-    openDetectorWidget->createDoor(6585,true);*/
-
-    wifiSocketWidget = new WifiSocketWidget("");
-
-
-
-    ui->widgetLayout->addLayout(debugLineWidget->getLayout());
-    ui->widgetLayout->addSpacerItem(new QSpacerItem(20,20));
-    ui->widgetLayout->addLayout(environmentalSensorWidget->getLayout());
-    ui->widgetLayout->addSpacerItem(new QSpacerItem(20,20));
-    ui->widgetLayout->addLayout(openDetectorWidget->getLayout());
-    ui->widgetLayout->addSpacerItem(new QSpacerItem(20,20));
-    ui->widgetLayout->addLayout(wifiSocketWidget->getLayout());
-
-    openDetectorWidget->startPolling(1000);
-
-    debugLineWidget->addText("Application started");
-
-    environmentalSensorWidget->startPolling(2000);
-
-
-    environmentalSensorWidget->setStorageCallback([&](QString a, QString b, QString c, QString d, QString e, QString f, QString g, QString h, QString i){
-        qDebug()<< "CB" << a << b << c << d << e << f << g << h << i;
-    });
+    if (debugLineWidget != nullptr)
+        debugLineWidget->addText("Application started correctly");
 
 }
 
@@ -121,8 +135,8 @@ void MainWindow::onSettingsApply()
     username = ui->usernameEdit->text();
     password = ui->passwordEdit->text();
     showDebugWidget = ui->showDebugWidgetCheckBox->isChecked();
-    showOpenDetectorDBWidget = ui->showOpenDetectorDBWidgetCheckBox->isChecked();
-    devices = "";
+    showOpenDetectorDBWidget = ui->showOpenDetectorDBWidgetCheckBox->isChecked();    
+    devices = ui->devicesEdit->toPlainText();;
 }
 
 void MainWindow::onSettingsReset()
@@ -133,7 +147,7 @@ void MainWindow::onSettingsReset()
     ui->passwordEdit->setText(password);
     ui->showDebugWidgetCheckBox->setChecked(showDebugWidget);
     ui->showOpenDetectorDBWidgetCheckBox->setChecked(showOpenDetectorDBWidget);
-    //ui->devicesEdit-
+    ui->devicesEdit->setPlainText(devices);
 }
 
 void MainWindow::onToggleFullscreen()

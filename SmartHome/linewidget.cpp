@@ -31,3 +31,6 @@ LineWidget::~LineWidget()
 {
     delete this->timer;
 }
+
+ QMap<QString,QString> LineWidget::aliases;
+

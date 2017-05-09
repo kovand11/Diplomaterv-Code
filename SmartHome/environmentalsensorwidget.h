@@ -44,6 +44,8 @@ private:
 
     QVBoxLayout *layout;
 
+    QLabel *deviceDescription;
+
     QLabel *temperatureLabel;
     QLabel *pressureLabel;
     QLabel *humidityLabel;

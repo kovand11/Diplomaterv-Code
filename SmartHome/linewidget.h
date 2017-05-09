@@ -3,6 +3,7 @@
 #include<QLayout>
 #include<QTimer>
 #include<QFont>
+#include<QMap>
 class LineWidget
 {
 public:
@@ -18,6 +19,8 @@ public:
 
     ~LineWidget();
 
+    static QMap<QString,QString> aliases;
+
 protected:
     QString deviceAddress;
     QLayout *layout;
@@ -25,6 +28,8 @@ protected:
 
     virtual void createWidget() = 0;
     virtual void updateWidget() = 0;
+
+
 };
 
 #endif // LINEWIDGET_H

@@ -30,9 +30,8 @@ private:
     Ui::MainWindow *ui;
 
     DebugLineWidget *debugLineWidget;
-    EnvironmentalSensorWidget *environmentalSensorWidget;
     OpenDetectorWidget * openDetectorWidget;
-    WifiSocketWidget *wifiSocketWidget;
+
 
 
 
@@ -46,6 +45,8 @@ private:
     QString devices;
 
     QSqlDatabase database;
+
+    QList<LineWidget*> lineWidgets;
 
 
 private slots:
