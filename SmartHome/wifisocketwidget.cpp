@@ -1,6 +1,6 @@
 #include "wifisocketwidget.h"
 
-WifiSocketWidget::WifiSocketWidget(QString ip,QObject *parent) : QObject(parent), LineWidget(ip)
+WifiSocketWidget::WifiSocketWidget(QString ip) : LineWidget(ip)
 {
     createWidget();
     isSocketConnected = false;
@@ -25,12 +25,12 @@ void WifiSocketWidget::createWidget()
         if (isSocketConnected)
         {
             this->connectButton->setIcon(QIcon(":/icons/disconnected.png"));
-            setControlParam("relay","0");
+            writeParameter("relay","0");
         }
         else
         {
             this->connectButton->setIcon(QIcon(":/icons/connected.png"));
-            setControlParam("relay","1");
+            writeParameter("relay","1");
         }
 
         isSocketConnected = !isSocketConnected;
@@ -46,22 +46,13 @@ void WifiSocketWidget::createWidget()
 
 void WifiSocketWidget::updateWidget()
 {
-
+    //TODO
 }
 
-void WifiSocketWidget::setControlParam(QString key,QString value)
-{
-    QUrl url;
-    url.setScheme("http");
-    url.setHost("192.168.0.17");
-    url.setPath("/control");
-    url.setQuery(key + "=" + value);
-    QNetworkRequest request(url);
-    networkManager.get(request);
-}
+
 
 void WifiSocketWidget::onSet(QString key, QString value)
 {
     if (key == "relay")
-        setControlParam("relay",value);
+        writeParameter("relay",value);
 }

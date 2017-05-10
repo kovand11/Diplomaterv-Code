@@ -150,7 +150,7 @@
     <item>
      <widget class="QStackedWidget" name="pageStack">
       <property name="currentIndex">
-       <number>0</number>
+       <number>2</number>
       </property>
       <widget class="QWidget" name="page1">
        <layout class="QVBoxLayout" name="verticalLayout_3">
@@ -335,16 +335,38 @@
       <widget class="QWidget" name="page3">
        <layout class="QVBoxLayout" name="verticalLayout_4">
         <item>
-         <widget class="QLabel" name="label_3">
-          <property name="font">
-           <font>
-            <pointsize>12</pointsize>
-           </font>
-          </property>
+         <widget class="QLabel" name="label_2">
           <property name="text">
-           <string>Programming page (unimplemented)</string>
+           <string>Syntax: source_device property condition const1 actrion target_device property</string>
           </property>
          </widget>
+        </item>
+        <item>
+         <widget class="QPlainTextEdit" name="programEdit"/>
+        </item>
+        <item>
+         <layout class="QHBoxLayout" name="horizontalLayout_6">
+          <item>
+           <spacer name="horizontalSpacer_4">
+            <property name="orientation">
+             <enum>Qt::Horizontal</enum>
+            </property>
+            <property name="sizeHint" stdset="0">
+             <size>
+              <width>40</width>
+              <height>20</height>
+             </size>
+            </property>
+           </spacer>
+          </item>
+          <item>
+           <widget class="QPushButton" name="saveProgramButton">
+            <property name="text">
+             <string>Save program</string>
+            </property>
+           </widget>
+          </item>
+         </layout>
         </item>
        </layout>
       </widget>

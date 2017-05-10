@@ -1,6 +1,6 @@
 #include "opendetectorwidget.h"
 
-OpenDetectorWidget::OpenDetectorWidget(QString address,QObject *parent) : QObject(parent), LineWidget(address)
+OpenDetectorWidget::OpenDetectorWidget(QString address) : LineWidget(address)
 {
     createWidget();
     processDatabase();
@@ -38,7 +38,7 @@ void OpenDetectorWidget::acquireData()
             }
         }
     }
-    //database.close();
+    database.close();
     QSqlDatabase::removeDatabase("QMYSQL");
 }
 
@@ -102,8 +102,8 @@ void OpenDetectorWidget::processDatabase()
         if (query.next())
         {
             bool isOpen= query.value(0).toString() != "0";
-            qDebug() << "Created door door " + QString::number(doors.at(i)) + " " + (isOpen ? "opened" : "closed");
             createDoor(doors.at(i),isOpen);
+            notify(QString::number(doors.at(i)),(isOpen?"1":"0"));
         }
     }
 
@@ -127,7 +127,26 @@ void OpenDetectorWidget::setDoorState(int id, bool isOpen)
 
 void OpenDetectorWidget::onSet(QString key, QString value)
 {
+    Q_UNUSED(key);
+    Q_UNUSED(value);
+    //This device has no parameter
+}
 
+void OpenDetectorWidget::getDeviceId()
+{
+    //this device has no id
+}
+
+void OpenDetectorWidget::writeParameter(QString key, QString value)
+{
+    Q_UNUSED(key);
+    Q_UNUSED(value);
+    //this device has no writable parameter
+}
+
+void OpenDetectorWidget::readParameters()
+{
+    //better sync access available
 }
 
 void OpenDetectorWidget::createDoor(int id, bool isOpen)

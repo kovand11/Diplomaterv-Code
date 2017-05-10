@@ -1,6 +1,6 @@
 #include "environmentalsensorwidget.h"
 
-EnvironmentalSensorWidget::EnvironmentalSensorWidget(QString ip, QObject *parent) :  QObject(parent), LineWidget(ip)
+EnvironmentalSensorWidget::EnvironmentalSensorWidget(QString ip) : LineWidget(ip)
 {
     //set data
     createWidget();
@@ -30,7 +30,7 @@ void EnvironmentalSensorWidget::setData(float temperature, float pressure, float
 
 void EnvironmentalSensorWidget::acquireData()
 {
-    QUrl url;
+    /*QUrl url;
     url.setScheme("http");
     url.setHost(deviceAddress);
     url.setPath("/json");
@@ -71,7 +71,20 @@ void EnvironmentalSensorWidget::acquireData()
                         );
         }
 
-        //emit notify("amb",object.value("Amb").toString());
+        emit notify("amb",object.value("Amb").toString());
+    });*/
+
+    readParameters();
+
+    connect(this,&EnvironmentalSensorWidget::parametersReady,[&](){
+        temperature = parameters["Temp"].toString().toFloat();
+        pressure = parameters["Pres"].toString().toFloat();
+        humidity = parameters["Hum"].toString().toFloat();
+        ambientLight = parameters["Amb"].toString().toFloat();
+        redCounter = parameters["R"].toString().toFloat();
+        greenCounter = parameters["G"].toString().toFloat();
+        blueCounter = parameters["B"].toString().toFloat();
+        whiteCounter = parameters["W"].toString().toFloat();
     });
 
 
@@ -154,12 +167,12 @@ void EnvironmentalSensorWidget::createWidget()
 
     blueCheckbox = new QCheckBox("B");
     connect(blueCheckbox,&QCheckBox::stateChanged,[&](int ch){
-        setDeveloperParam("blueled",( ch==Qt::Checked ? "1" : "0" ));
+        writeParameter("blueled",( ch==Qt::Checked ? "1" : "0" ));
     });
 
     amberCheckbox = new QCheckBox("A");
     connect(amberCheckbox,&QCheckBox::stateChanged,[&](int ch){
-        setDeveloperParam("amberled",( ch==Qt::Checked ? "1" : "0" ));
+        writeParameter("amberled",( ch==Qt::Checked ? "1" : "0" ));
     });
 
     lightAndLedLayout->addWidget(blueCheckbox);
@@ -184,22 +197,11 @@ void EnvironmentalSensorWidget::updateWidget()
     whiteCounterLabel->setText("W = " + QString::number(whiteCounter));
 }
 
-void EnvironmentalSensorWidget::setDeveloperParam(QString key, QString value)
-{
-    QUrl url;
-    url.setScheme("http");
-    url.setHost(deviceAddress);
-    url.setPath("/developer");
-    url.setQuery(key + "=" + value);
-    qDebug() << "url" << url;
-    QNetworkRequest request(url);
-    networkManager.get(request);
-}
 
 void EnvironmentalSensorWidget::onSet(QString key, QString value)
 {
     if (key == "blueled" || key == "amberled")
     {
-        setDeveloperParam(key,value);
+        writeParameter(key,value);
     }
 }

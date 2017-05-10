@@ -13,6 +13,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
     connect(ui->resetSettingsButton,&QPushButton::clicked,this,&MainWindow::onSettingsReset);
     connect(ui->toggleFullscreenButton,&QToolButton::clicked,this,&MainWindow::onToggleFullscreen);
     connect(ui->keyboardButton,&QPushButton::clicked,this,&MainWindow::onKeyboard);
+    connect(ui->saveProgramButton,&QPushButton::clicked,this,&MainWindow::onNewProgram);
 
     QSettings settings("AndrasKovacs", "Smart Home");
     serverAddress = settings.value("serverAddress").toString();
@@ -46,6 +47,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
         openDetectorWidget->startPolling(1000);
         if (debugLineWidget != nullptr)
             debugLineWidget->addText("Open detector widget added (" + serverAddress +" : "+ databaseName + ")");
+        deviceHandler.openDetector = openDetectorWidget;
     }
 
     QStringList devicesList = devices.split('\n');
@@ -61,7 +63,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
             if (args[0] == "env")
             {
                 EnvironmentalSensorWidget *environmentalSensorWidget = new EnvironmentalSensorWidget(args[1]);
-                lineWidgets.push_back(environmentalSensorWidget);
+                deviceHandler.devices.append(environmentalSensorWidget);
                 ui->widgetLayout->addLayout(environmentalSensorWidget->getLayout());
                 ui->widgetLayout->addSpacerItem(new QSpacerItem(20,20));
                 environmentalSensorWidget->setData(0,0,0,0,0,0,0,0);
@@ -71,7 +73,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
             else if (args[0] == "soc")
             {
                 WifiSocketWidget *wifiSocketWidget = new WifiSocketWidget(args[1]);
-                lineWidgets.push_back(wifiSocketWidget);
+                deviceHandler.devices.append(wifiSocketWidget);
                 ui->widgetLayout->addLayout(wifiSocketWidget->getLayout());
                 ui->widgetLayout->addSpacerItem(new QSpacerItem(20,20));
             }
@@ -91,8 +93,13 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
     if (debugLineWidget != nullptr)
         debugLineWidget->addText("Application started correctly");
 
-    rule = new AutomationRule();
-    //connect(lineWidgets[1],&LineWidget::no)
+    //new AutomationRule(lineWidgets[0],"Amb",10,"<","link",lineWidgets[0],"blueled");
+
+    loadProgram();
+    onNewProgram();
+
+
+
 
 }
 
@@ -107,6 +114,21 @@ MainWindow::~MainWindow()
     settings.setValue("showOpenDetectorDBWidget",showOpenDetectorDBWidget);
     settings.setValue("devices",devices);
     delete ui;
+}
+
+LineWidget *MainWindow::getDeviceById(QString id)
+{
+    if (id == "doors")
+    {
+        return deviceHandler.openDetector;
+    }
+
+    for (LineWidget *lw : deviceHandler.devices)
+    {
+        if (lw->getId() == id)
+            return lw;
+    }
+    return nullptr;
 }
 
 
@@ -171,4 +193,45 @@ void MainWindow::onKeyboard()
     QProcess *process = new QProcess(this);
     QString file = "matchbox-keyboard";
     process->start(file);
+}
+
+void MainWindow::onNewProgram()
+{
+    QString source = ui->programEdit->toPlainText();
+    QStringList lines = source.split('\n');
+    for (QString line : lines)
+    {
+        QStringList params = line.split(' ');
+        if (params.size() == 7)
+        {
+            qDebug() << "valid line" << line;
+            QString srcDev = params.at(0); LineWidget* srcDevPointer = getDeviceById(srcDev);
+            QString srcProp = params.at(1);
+            QString cond = params.at(2);
+            QString constant = params.at(3); float constantFloat = constant.toFloat();
+            QString action = params.at(4);
+            QString trgDev = params.at(5); LineWidget* trgDevPointer = getDeviceById(trgDev);
+            QString trgProp = params.at(6);
+            deviceHandler.rules.append(new AutomationRule(srcDevPointer,srcProp,cond,constantFloat,action,trgDevPointer,trgProp));
+        }
+        else
+        {
+            qWarning() << "syntax error at line: " + line;
+        }
+    }
+    saveProgram();
+}
+
+void MainWindow::loadProgram()
+{
+    QSettings settings("AndrasKovacs", "Smart Home");
+    QString program = settings.value("program").toString();
+    ui->programEdit->setPlainText(program);
+}
+
+void MainWindow::saveProgram()
+{
+    QString program = ui->programEdit->toPlainText();
+    QSettings settings("AndrasKovacs", "Smart Home");
+    settings.setValue("program",program);
 }

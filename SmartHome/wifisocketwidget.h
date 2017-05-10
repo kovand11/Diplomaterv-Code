@@ -11,10 +11,10 @@
 
 
 
-class WifiSocketWidget : public QObject, public LineWidget
+class WifiSocketWidget : public LineWidget
 {
 public:
-    WifiSocketWidget(QString ip,QObject *parent = 0);
+    WifiSocketWidget(QString ip);
 
     void acquireData() override;
     void createWidget() override;
@@ -26,10 +26,8 @@ public:
     float power;
 
 private:
-    void setControlParam(QString key,QString value);
 
-    QNetworkAccessManager networkManager;
-    QNetworkReply *networkReply;
+public slots:
     void onSet(QString key,QString value) override;
 
 

@@ -17,11 +17,11 @@
 
 #include "linewidget.h"
 
-class EnvironmentalSensorWidget : public QObject, public LineWidget
+class EnvironmentalSensorWidget : public LineWidget
 {
     Q_OBJECT
 public:
-    explicit EnvironmentalSensorWidget(QString ip,QObject *parent = 0);
+    explicit EnvironmentalSensorWidget(QString ip);
 
     QLayout *getLayout();
 
@@ -32,7 +32,6 @@ public:
 
     void setStorageCallback(std::function< void(QString,QString,QString,QString,QString,QString,QString,QString,QString) > callback);
 
-signals:
 
 public slots:
 
@@ -40,7 +39,6 @@ private:
     void createWidget() override;
     void updateWidget() override;
 
-    void setDeveloperParam(QString key,QString value);
 
     QVBoxLayout *layout;
 
@@ -72,8 +70,9 @@ private:
 
     std::function< void(QString,QString,QString,QString,QString,QString,QString,QString,QString) > storageCallback; //id, temp, press, hum, amb, r, g, b, w (+implicit date)
 
-    QNetworkAccessManager networkManager;
-    QNetworkReply *networkReply;
+
+
+public slots:
 
     void onSet(QString key,QString value) override;
 

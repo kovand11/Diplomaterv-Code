@@ -4,8 +4,18 @@
 #include<QTimer>
 #include<QFont>
 #include<QMap>
-class LineWidget
+#include<QObject>
+#include<QUrl>
+#include <QtNetwork/QNetworkAccessManager>
+#include <QtNetwork/QNetworkRequest>
+#include <QtNetwork/QNetworkReply>
+#include <QJsonDocument>
+#include <QJsonObject>
+#include <QDebug>
+
+class LineWidget : public QObject
 {
+Q_OBJECT
 public:
     LineWidget(QString deviceAddress);
     QLayout *getLayout();
@@ -16,6 +26,8 @@ public:
 
     QFont *defaultFont;
 
+    QString getId();
+
 
     ~LineWidget();
 
@@ -23,17 +35,34 @@ public:
 
 signals:
     void notify(QString,QString);
+    void parametersReady();
+    void deviceInfoReady();
 
 protected:
     QString deviceAddress;
+    QString deviceId;
     QLayout *layout;
     QTimer *timer;
 
     virtual void createWidget() = 0;
     virtual void updateWidget() = 0;
+
+    virtual void getDeviceId();
+    virtual void writeParameter(QString key, QString value);
+    virtual void readParameters();
+
+    QNetworkAccessManager networkManager;
+    QNetworkReply *networkReply;
+    QVariantMap parameters;
+
+public slots:
     virtual void onSet(QString key,QString value) = 0;
 
 
+
+
 };
+
+Q_DECLARE_INTERFACE(LineWidget, "LineWidget")
 
 #endif // LINEWIDGET_H

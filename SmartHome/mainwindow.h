@@ -10,6 +10,8 @@
 #include "opendetectorwidget.h"
 #include "wifisocketwidget.h"
 #include "automationrule.h"
+#include "devicehandler.h"
+
 
 #include <QtSql/QtSql>
 #include <QtSql/QSqlDatabase>
@@ -47,9 +49,9 @@ private:
 
     QSqlDatabase database;
 
-    QList<LineWidget*> lineWidgets;
+    DeviceHandler deviceHandler;
 
-    AutomationRule *rule;
+    LineWidget *getDeviceById(QString id);
 
 
 private slots:
@@ -61,6 +63,12 @@ private slots:
     void onSettingsReset();
     void onToggleFullscreen();
     void onKeyboard();
+
+    void onNewProgram();
+    void loadProgram();
+    void saveProgram();
+
+
 
 
 

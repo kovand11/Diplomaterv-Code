@@ -21,7 +21,8 @@ SOURCES += main.cpp\
     linewidget.cpp \
     opendetectorwidget.cpp \
     wifisocketwidget.cpp \
-    automationrule.cpp
+    automationrule.cpp \
+    devicehandler.cpp
 
 HEADERS  += mainwindow.h \
     debuglinewidget.h \
@@ -29,7 +30,8 @@ HEADERS  += mainwindow.h \
     linewidget.h \
     opendetectorwidget.h \
     wifisocketwidget.h \
-    automationrule.h
+    automationrule.h \
+    devicehandler.h
 
 FORMS    += mainwindow.ui
 

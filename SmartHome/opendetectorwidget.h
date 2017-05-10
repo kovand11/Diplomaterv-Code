@@ -13,10 +13,10 @@
 #include <QtSql/QSqlQuery>
 
 
-class OpenDetectorWidget : public QObject, public LineWidget
+class OpenDetectorWidget : public LineWidget
 {
 public:
-    OpenDetectorWidget(QString address,QObject *parent = 0);
+    OpenDetectorWidget(QString address);
 
     void acquireData() override;
 
@@ -32,7 +32,14 @@ protected:
 
     void setDoorState(int id, bool isOpen);
 
+public slots:
+
     void onSet(QString key,QString value) override;
+
+    void getDeviceId() override;
+    void writeParameter(QString key, QString value) override;
+    void readParameters() override;
+
 
 
 
