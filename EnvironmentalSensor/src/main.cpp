@@ -12,7 +12,6 @@
 #include <BME280I2C.h>
 
 
-
 //Images encoded in Base64
 //
 
@@ -31,7 +30,6 @@ const char* img_temp = "data:image/png;base64,"
 "lgODLrb43R5D9V3J3hOdu1gQxt2nUkr2W3TK7cuZwkR9J99ur1YY4EZFWclH2mWAH+1foJqlCAO2"
 "Uf8Djdw+A9ZR/LD2UREOBogQHixwj0NuF6spXHfHk9cbJO0sEBsnQP4SON7kd/MVvqOzeHhnafr2"
 "BVNsRi5y8k/dAAAAAElFTkSuQmCC";
-
 
 //Pressure symbol 32x32
 const char* img_pres = "data:image/png;base64,"
@@ -96,7 +94,6 @@ const char* img_hum = "data:image/png;base64,"
 "2lBPZxG9QhV7LX5nH4YYq36OFaer6i6tqcHkdsZl9CsCACCcGiPmdBo0ev2JrGG95X/yB/1K4IBN"
 "a70aAAAAAElFTkSuQmCC";
 
-
 //RGB symbol 32x32
 const char* img_rgb = "data:image/png;base64,"
 "iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAMAAABEpIrGAAAAA3NCSVQICAjb4U/gAAAACXBIWXMA"
@@ -116,7 +113,6 @@ const char* img_rgb = "data:image/png;base64,"
 
 //Constants
 //
-
 
 //Board
 #define LED_BLUE    12
@@ -142,6 +138,9 @@ bool hasBME280 = false;
 bool hasVEML6040 = false;
 
 
+/**
+ * @brief Writes to permanent storage
+ */
 void writeToEEPROM(int address,String value)
 {
   int addr = address;
@@ -153,6 +152,10 @@ void writeToEEPROM(int address,String value)
   EEPROM.write(addr, 0);
 }
 
+
+/**
+ * @brief Reads from permanent storage
+ */
 String readFromEEPROM(int address,int maxlen)
 {
   String str = "";
@@ -170,7 +173,6 @@ String readFromEEPROM(int address,int maxlen)
   }
   return str;
 }
-
 
 
 /**
@@ -217,28 +219,27 @@ String createMainPage(float temperature,float pressure, float humidity,
 /**
  * @brief Displays the measured data in JSON format.  Displayed: Temp., Press., Hum., RGBW, UVAB
  */
-String createJSONPage(String mac,uint32_t id,float temp,float pres, float hum,float a,float r,float g,float b, float w)
+String createJSONPage(String mac,uint32_t id,float temp,float pres, float hum,float a,float r,float g,float b, float w) //leds from global
 {
   String src = "";
-
   src += "{\n";
-  src += "  \"Type\": \"Environmental Sensor\",\n";
-  src += "  \"MAC\": \"" + mac + "\",\n";
-  src += "  \"ID\": \"" + String(id) + "\",\n";
-  src += "  \"Temp\": \"" + String(temp) + "\",\n";
-  src += "  \"Pres\": \"" + String(pres) + "\",\n";
-  src += "  \"Hum\": \"" + String(hum) + "\",\n";
-  src += "  \"Amb\": \"" + String(a) + "\",\n";
-  src += "  \"R\": \"" + String(r) + "\",\n";
-  src += "  \"G\": \"" + String(g) + "\",\n";
-  src += "  \"B\": \"" + String(b) + "\",\n";
-  src += "  \"W\": \"" + String(w) + "\"\n";
+  src += "  \"ledblue\": \"" + String(ledBlue?"1":"0") + "\",\n";
+  src += "  \"ledamber\": \"" + String(ledAmber?"1":"0") + "\",\n";
+  src += "  \"temperature\": \"" + String(temp) + "\",\n";
+  src += "  \"pressure\": \"" + String(pres) + "\",\n";
+  src += "  \"humidity\": \"" + String(hum) + "\",\n";
+  src += "  \"ambient\": \"" + String(a) + "\",\n";
+  src += "  \"red\": \"" + String(r) + "\",\n";
+  src += "  \"green\": \"" + String(g) + "\",\n";
+  src += "  \"blue\": \"" + String(b) + "\",\n";
+  src += "  \"white\": \"" + String(w) + "\"\n";
   src += "}\n";
-
   return src;
 }
 
-
+/**
+ * @brief Displays status info in human readable HTML
+ */
 String createStatusPage(String mac,uint32_t id,String comp_date,String comp_time,String freeHeap) //BME280 and VEML6040 from globals
 {
   String src = "";
@@ -254,6 +255,9 @@ String createStatusPage(String mac,uint32_t id,String comp_date,String comp_time
   return src;
 }
 
+/**
+ * @brief Settings page: wifi user, wifi password
+ */
 String createSettingsPage(String user, String password)
 {
   String src = "";
@@ -274,8 +278,23 @@ String createSettingsPage(String user, String password)
   return src;
 }
 
+/**
+ * @brief JSON info page: type, id
+ */
+String createInfoPage(String id) //type hardcoded
+{
+  String src = "";
+  src += "{\n";
+  src += "  \"type\": \"env\",\n";
+  src += "  \"id\": \"" + id + "\"\n";
+  src += "}\n";
+  return src;
+}
 
 
+/**
+ * @brief Setup for the soft webserver
+ */
 void serverSetup()
 {
   EEPROM.begin(192);
@@ -297,25 +316,21 @@ void serverSetup()
   Serial.print("Local IP: ");
   Serial.println(WiFi.localIP());
 
-
   if (mdns.begin("esp8266", WiFi.localIP())) {
     Serial.println("MDNS responder started");
   }
-
 
   server.on("/", []() {
     //read BME280 data
     float temperature, humidity, presssure;
     bme.read(presssure,temperature,humidity,true,B001); //metric and bar
     temperature -= 3.5f; //compensation
-
     //read VEML6040 data
     float amb = RGBWSensor.getAmbientLight();
     uint16_t r = RGBWSensor.getRed();
     uint16_t g = RGBWSensor.getGreen();
     uint16_t b = RGBWSensor.getBlue();
     uint16_t w = RGBWSensor.getWhite();
-
     server.send(200, "text/html", createMainPage(temperature,presssure,humidity,amb,r,g,b,w));
   });
 
@@ -325,13 +340,11 @@ void serverSetup()
     float temperature, humidity, presssure;
     bme.read(presssure,temperature,humidity,true,B001); //metric and bar
     temperature -= 3.5f; //compensation
-
     float amb = RGBWSensor.getAmbientLight();
     uint16_t r = RGBWSensor.getRed();
     uint16_t g = RGBWSensor.getGreen();
     uint16_t b = RGBWSensor.getBlue();
     uint16_t w = RGBWSensor.getWhite();
-
     server.send(200, "text/json", createJSONPage(WiFi.macAddress(),ESP.getChipId(),temperature, presssure, humidity, amb, r, g, b, w));
   });
 
@@ -339,11 +352,14 @@ void serverSetup()
     server.send(200, "text/html", createStatusPage(WiFi.macAddress(), ESP.getChipId(), String(__DATE__), String(__TIME__), String(ESP.getFreeHeap())));
   });
 
+  server.on("/info", []() {
+    server.send(200, "text/html", createInfoPage(String(ESP.getChipId())));
+  });
 
-  server.on("/developer", []() {
+  server.on("/control", []() {
 
-    String blueLedArg = server.arg("blueled");
-    String amberLedArg = server.arg("amberled");
+    String blueLedArg = server.arg("ledblue");
+    String amberLedArg = server.arg("ledamber");
 
     if (blueLedArg == "0")
       ledBlue = false;
@@ -377,7 +393,6 @@ void serverSetup()
     String user = readFromEEPROM(EEPROM_USER,EEPROM_MAXLEN);
     String password = readFromEEPROM(EEPROM_PASSWORD,EEPROM_MAXLEN);
     EEPROM.end();
-
     server.send(200, "text/html", createSettingsPage(user, password));
   });
 
@@ -396,7 +411,6 @@ void serverSetup()
 }
 
 
-
 /**
  * @brief The initializer callback. Runs once at device startup.
  */
@@ -408,7 +422,6 @@ void setup()
   digitalWrite(LED_AMBER, LOW);
   Serial.begin(115200);
   serverSetup();
-
   Wire.begin(PIN_SDA,PIN_SCL);
 
   if(!bme.begin())
@@ -416,21 +429,17 @@ void setup()
   else
     hasBME280=true;
 
-
-
-
   if(!RGBWSensor.begin())
     Serial.println("ERROR: couldn't detect the VEML6040 sensor");
   else
     hasVEML6040 = true;
 
   RGBWSensor.setConfiguration(VEML6040_IT_640MS + VEML6040_AF_AUTO + VEML6040_SD_ENABLE);
-
   delay(1500);
 }
 
 /**
- * @brief The main loop.
+ * @brief The main loop: handles the client requests
  */
 void loop()
 {
