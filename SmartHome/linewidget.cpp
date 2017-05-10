@@ -5,6 +5,7 @@ LineWidget::LineWidget(QString deviceAddress)
     this->deviceAddress = deviceAddress;
     timer = new QTimer();
     defaultFont = new QFont("Roboto",16);
+    getDeviceId();
 }
 
 QLayout *LineWidget::getLayout()
@@ -42,7 +43,7 @@ void LineWidget::getDeviceId()
     QUrl url;
     url.setScheme("http");
     url.setHost(deviceAddress);
-    url.setPath("/json");
+    url.setPath("/info");
     QNetworkRequest request(url);
     networkReply = networkManager.get(request);
     connect(networkReply,&QNetworkReply::finished,[&]()
@@ -51,6 +52,7 @@ void LineWidget::getDeviceId()
         QJsonDocument document = QJsonDocument::fromJson(data);
         QJsonObject object = document.object();
         deviceId = object.value("id").toString();
+        qDebug() << "id" << deviceId;
         emit deviceInfoReady();
     });
 }
@@ -60,8 +62,9 @@ void LineWidget::writeParameter(QString key, QString value)
     QUrl url;
     url.setScheme("http");
     url.setHost(deviceAddress);
-    url.setPath("/developer");
+    url.setPath("/control");
     url.setQuery(key + "=" + value);
+    qDebug() << "set url req" << url.toString();
     QNetworkRequest request(url);
     networkManager.get(request);
 }

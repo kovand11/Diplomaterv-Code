@@ -93,14 +93,9 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
     if (debugLineWidget != nullptr)
         debugLineWidget->addText("Application started correctly");
 
-    //new AutomationRule(lineWidgets[0],"Amb",10,"<","link",lineWidgets[0],"blueled");
+
 
     loadProgram();
-    onNewProgram();
-
-
-
-
 }
 
 MainWindow::~MainWindow()
@@ -197,6 +192,7 @@ void MainWindow::onKeyboard()
 
 void MainWindow::onNewProgram()
 {
+
     QString source = ui->programEdit->toPlainText();
     QStringList lines = source.split('\n');
     for (QString line : lines)

@@ -4,6 +4,7 @@ EnvironmentalSensorWidget::EnvironmentalSensorWidget(QString ip) : LineWidget(ip
 {
     //set data
     createWidget();
+    connect(this,&EnvironmentalSensorWidget::deviceInfoReady,[&](){deviceDescription->setText("Environmental sensor: " + deviceId);});
 
 }
 
@@ -77,14 +78,19 @@ void EnvironmentalSensorWidget::acquireData()
     readParameters();
 
     connect(this,&EnvironmentalSensorWidget::parametersReady,[&](){
-        temperature = parameters["Temp"].toString().toFloat();
-        pressure = parameters["Pres"].toString().toFloat();
-        humidity = parameters["Hum"].toString().toFloat();
-        ambientLight = parameters["Amb"].toString().toFloat();
-        redCounter = parameters["R"].toString().toFloat();
-        greenCounter = parameters["G"].toString().toFloat();
-        blueCounter = parameters["B"].toString().toFloat();
-        whiteCounter = parameters["W"].toString().toFloat();
+        temperature = parameters["temperature"].toString().toFloat();
+        pressure = parameters["pressure"].toString().toFloat();
+        humidity = parameters["humidity"].toString().toFloat();
+        ambientLight = parameters["ambient"].toString().toFloat();
+        redCounter = parameters["red"].toString().toFloat();
+        greenCounter = parameters["green"].toString().toFloat();
+        blueCounter = parameters["blue"].toString().toFloat();
+        whiteCounter = parameters["white"].toString().toFloat();
+
+        bool blueOn = parameters["ledblue"].toString() == "1";
+        bool amberOn = parameters["ledamber"].toString() == "1";
+        blueCheckbox->setChecked(blueOn);
+        amberCheckbox->setChecked(amberOn);
     });
 
 
@@ -167,12 +173,12 @@ void EnvironmentalSensorWidget::createWidget()
 
     blueCheckbox = new QCheckBox("B");
     connect(blueCheckbox,&QCheckBox::stateChanged,[&](int ch){
-        writeParameter("blueled",( ch==Qt::Checked ? "1" : "0" ));
+        writeParameter("ledblue",( ch==Qt::Checked ? "1" : "0" ));
     });
 
     amberCheckbox = new QCheckBox("A");
     connect(amberCheckbox,&QCheckBox::stateChanged,[&](int ch){
-        writeParameter("amberled",( ch==Qt::Checked ? "1" : "0" ));
+        writeParameter("ledamber",( ch==Qt::Checked ? "1" : "0" ));
     });
 
     lightAndLedLayout->addWidget(blueCheckbox);
@@ -200,7 +206,7 @@ void EnvironmentalSensorWidget::updateWidget()
 
 void EnvironmentalSensorWidget::onSet(QString key, QString value)
 {
-    if (key == "blueled" || key == "amberled")
+    if (key == "ledblue" || key == "ledamber")
     {
         writeParameter(key,value);
     }

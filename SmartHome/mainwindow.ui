@@ -150,7 +150,7 @@
     <item>
      <widget class="QStackedWidget" name="pageStack">
       <property name="currentIndex">
-       <number>2</number>
+       <number>0</number>
       </property>
       <widget class="QWidget" name="page1">
        <layout class="QVBoxLayout" name="verticalLayout_3">
@@ -362,7 +362,7 @@
           <item>
            <widget class="QPushButton" name="saveProgramButton">
             <property name="text">
-             <string>Save program</string>
+             <string>Run program</string>
             </property>
            </widget>
           </item>
