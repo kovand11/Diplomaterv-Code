@@ -31,52 +31,8 @@ void EnvironmentalSensorWidget::setData(float temperature, float pressure, float
 
 void EnvironmentalSensorWidget::acquireData()
 {
-    /*QUrl url;
-    url.setScheme("http");
-    url.setHost(deviceAddress);
-    url.setPath("/json");
-    QNetworkRequest request(url);
-    networkReply = networkManager.get(request);
-    connect(networkReply,&QNetworkReply::finished,[&]()
-    {
-        QByteArray data = networkReply->readAll();
-        qDebug()<< "Raw" << data;
-        QJsonDocument document = QJsonDocument::fromJson(data);
-        QJsonObject object = document.object();
-        QString id = object.value("ID").toString();
-        if (LineWidget::aliases.contains(id))
-            deviceDescription->setText("Environmental sensor: " + LineWidget::aliases[id]);
-        else
-            deviceDescription->setText("Environmental sensor: " + id);
-        temperature = object.value("Temp").toString().toFloat();
-        pressure = object.value("Pres").toString().toFloat();
-        humidity = object.value("Hum").toString().toFloat();
-        ambientLight = object.value("Amb").toString().toFloat();
-        redCounter = object.value("R").toString().toFloat();
-        greenCounter = object.value("G").toString().toFloat();
-        blueCounter = object.value("B").toString().toFloat();
-        whiteCounter = object.value("W").toString().toFloat();
-
-
-        if (storageCallback)
-        {
-            storageCallback(object.value("ID").toString(),
-                        object.value("Temp").toString(),
-                        object.value("Pres").toString(),
-                        object.value("Hum").toString(),
-                        object.value("Amb").toString(),
-                        object.value("R").toString(),
-                        object.value("G").toString(),
-                        object.value("B").toString(),
-                        object.value("W").toString()
-                        );
-        }
-
-        emit notify("amb",object.value("Amb").toString());
-    });*/
 
     readParameters();
-
     connect(this,&EnvironmentalSensorWidget::parametersReady,[&](){
         temperature = parameters["temperature"].toString().toFloat();
         pressure = parameters["pressure"].toString().toFloat();
@@ -92,10 +48,6 @@ void EnvironmentalSensorWidget::acquireData()
         blueCheckbox->setChecked(blueOn);
         amberCheckbox->setChecked(amberOn);
     });
-
-
-
-
 }
 
 void EnvironmentalSensorWidget::setStorageCallback(std::function<void (QString, QString, QString, QString, QString, QString, QString, QString, QString)> callback)

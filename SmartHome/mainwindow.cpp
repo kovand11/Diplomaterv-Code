@@ -67,7 +67,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
                 ui->widgetLayout->addLayout(environmentalSensorWidget->getLayout());
                 ui->widgetLayout->addSpacerItem(new QSpacerItem(20,20));
                 environmentalSensorWidget->setData(0,0,0,0,0,0,0,0);
-                environmentalSensorWidget->startPolling(2000);
+                environmentalSensorWidget->startPolling(1000);
 
             }
             else if (args[0] == "soc")
@@ -76,6 +76,8 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
                 deviceHandler.devices.append(wifiSocketWidget);
                 ui->widgetLayout->addLayout(wifiSocketWidget->getLayout());
                 ui->widgetLayout->addSpacerItem(new QSpacerItem(20,20));
+                wifiSocketWidget->setData(0,0,0,0);
+                wifiSocketWidget->startPolling(1000);
             }
             else if (args[0] == "alias")
             {
@@ -200,7 +202,6 @@ void MainWindow::onNewProgram()
         QStringList params = line.split(' ');
         if (params.size() == 7)
         {
-            qDebug() << "valid line" << line;
             QString srcDev = params.at(0); LineWidget* srcDevPointer = getDeviceById(srcDev);
             QString srcProp = params.at(1);
             QString cond = params.at(2);
@@ -208,7 +209,25 @@ void MainWindow::onNewProgram()
             QString action = params.at(4);
             QString trgDev = params.at(5); LineWidget* trgDevPointer = getDeviceById(trgDev);
             QString trgProp = params.at(6);
-            deviceHandler.rules.append(new AutomationRule(srcDevPointer,srcProp,cond,constantFloat,action,trgDevPointer,trgProp));
+            if (srcDevPointer != nullptr && trgDevPointer != nullptr)
+            {
+                deviceHandler.rules.append(new AutomationRule(srcDevPointer,srcProp,cond,constantFloat,action,trgDevPointer,trgProp));
+            }
+            else
+            {
+                if (srcDevPointer == nullptr)
+                {
+                    qWarning() << "Error identifying device: " + srcDev;
+                    if (debugLineWidget != nullptr)
+                        debugLineWidget->addText("Error identifying device: " + srcDev);
+                }
+                if (trgDevPointer == nullptr)
+                {
+                    qWarning() << "Error identifying device: " + trgDev;
+                    if (debugLineWidget != nullptr)
+                        debugLineWidget->addText("Error identifying device: " + trgDev);
+                }
+            }
         }
         else
         {

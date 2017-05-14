@@ -19,13 +19,26 @@ public:
     void acquireData() override;
     void createWidget() override;
     void updateWidget() override;
+    void setSocketButton(bool on);
+
+    void setData(float power, float voltage, float current, float powerFactor);
+
 
     QToolButton *connectButton;
+    QLabel *idLabel;
+    QLabel *powerLabel;
+    QLabel *voltageLabel;
+    QLabel *currentLabel;
+    QLabel *powerFactorLabel;
 
     bool isSocketConnected;
-    float power;
 
 private:
+    float power;
+    float voltage;
+    float current;
+    float powerFactor;
+
 
 public slots:
     void onSet(QString key,QString value) override;
