@@ -19,6 +19,10 @@
 
 ESP8266WebServer server(80);
 
+
+/**
+ * @brief Writes to permanent storage
+ */
 void writeToEEPROM(int address,String value)
 {
   int addr = address;
@@ -30,6 +34,10 @@ void writeToEEPROM(int address,String value)
   EEPROM.write(addr, 0);
 }
 
+
+/**
+ * @brief Reads from permanent storage
+ */
 String readFromEEPROM(int address,int maxlen)
 {
   String str = "";
@@ -48,6 +56,9 @@ String readFromEEPROM(int address,int maxlen)
   return str;
 }
 
+/**
+ * @brief Provides the setup page (having problem with the transfer)
+ */
 void performSetup()
 {
   Serial.println("Setup started");
@@ -80,7 +91,6 @@ void performSetup()
     form += "</form>\n";
     form += "</body>\n";
     form += "</html>\n";
-
     server.send(200, "text/html", form);
   });
 
@@ -103,7 +113,9 @@ void performSetup()
 
 
 
-
+/**
+ * @brief The initializer callback. Runs once at device startup.
+ */
 void setup()
 {
   Serial.begin(115200);
@@ -164,6 +176,10 @@ void setup()
   digitalWrite(LED, LOW);
 }
 
+
+/**
+ * @brief The main loop: handles the client requests
+ */
 void loop()
 {
   server.handleClient();
