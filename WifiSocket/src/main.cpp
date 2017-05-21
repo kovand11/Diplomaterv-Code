@@ -16,7 +16,6 @@
 #define SCS 15 // chip select //SS
 #define SYN 5 //read/wite
 
-
 ESP8266WebServer server(80);
 MDNSResponder mdns;
 
@@ -26,35 +25,37 @@ bool ledOn = false;
 uint32_t reg_data[8];  // array to hold read data, max is 8
 
 
-void read_regs(uint32_t data[], uint8_t len){  // an array to hold register data is passed
-  digitalWrite(SYN, LOW);  // latching operation
+void readSpiRegs(uint32_t data[], uint8_t len)
+{
+  digitalWrite(SYN, LOW);
   digitalWrite(SCS, LOW);
   digitalWrite(SYN, HIGH);
 
   uint32_t val = 0;
-  for (int i = 0; i < len; i++){  // read the 8 32-bit registers into the array
-    val = SPI.transfer(0);  // your 32 serial clocks
+  for (int i = 0; i < len; i++){
+    val = SPI.transfer(0);
     val |= (uint32_t)SPI.transfer(0) << 8;
     val |= (uint32_t)SPI.transfer(0) << 16;
     val |= (uint32_t)SPI.transfer(0) << 24;
     data[i] = val;
   }
-  digitalWrite(SCS, HIGH);  // deassert SCS
+  digitalWrite(SCS, HIGH);
 }
 
 
-void write_reg(byte addr, byte val){
-  val = (val << 7) | (addr << 1);  // 6-bit addresses!
-  SPI.end();  // disable SPI
+void writeSpiRegs(byte addr, byte val){
+  val = (val << 7) | (addr << 1);
+  SPI.end();
   pinMode(MISO, OUTPUT);
   digitalWrite(SYN, HIGH);
   delayMicroseconds(10);
 
-  digitalWrite(SCS, LOW);  // assert SCS and SYN
+  digitalWrite(SCS, LOW);
   digitalWrite(SYN, LOW);
-  for (int i = 0; i < 8; i++){  // shift out a byte
+  for (int i = 0; i < 8; i++)
+  {
     delayMicroseconds(10);
-    digitalWrite(SCK, LOW);  // max clock is 100kHz
+    digitalWrite(SCK, LOW);
     digitalWrite(MISO, (val & 0x80) ? HIGH : LOW);
     delayMicroseconds(10);
     digitalWrite(SCK, HIGH);
@@ -186,14 +187,6 @@ String createJSONPage(float power,float volt, float curr,float powf) //led and r
 }
 
 
-void onButtonPush()
-{
-  write_reg(47, 1);  // set config bit 47
-  delay(1);
-  read_regs(reg_data, 8);  // read all reg data into array
-  for (int i = 0; i < 8; i++)
-    Serial.println(reg_data[i], HEX);
-}
 
 void setup()
 {
@@ -205,8 +198,6 @@ void setup()
   digitalWrite(LED, HIGH);
   ledOn = true;
 
-  pinMode(BUTTON, INPUT);
-  attachInterrupt(BUTTON, onButtonPush, FALLING);
 
   WiFi.begin("AndroidAP", "ifez0433");
   delay(1000);
@@ -235,6 +226,8 @@ void setup()
 
   server.on("/control", []() {
     String relayArg = server.arg("relay");
+    String ledArg = server.arg("led");
+
     if (relayArg == "0")
     {
       digitalWrite(RELAY, LOW);
@@ -245,6 +238,18 @@ void setup()
       digitalWrite(RELAY, HIGH);
       relayOn = true;
     }
+
+    if (ledArg == "0")
+    {
+      digitalWrite(LED, LOW);
+      ledOn = false;
+    }
+    else if (ledArg == "1")
+    {
+      digitalWrite(LED, HIGH);
+      ledOn = true;
+    }
+
     server.send(200, "text/html", "Done");
   });
 
